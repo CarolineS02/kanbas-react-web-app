@@ -7,17 +7,7 @@ import { FaInbox, FaRegCircleUser } from "react-icons/fa6";
 
 function App() {
   return (
-    <div>
-      <div id="wd-kanbas-navigation">
-        <a href="https://www.northeastern.edu/" id="wd-neu-link" target="_blank">Northeastern</a><br />
-        <Link to="/Kanbas/Account" id="wd-account-link">Account</Link><br />
-        <Link to="/Kanbas/Dashboard" id="wd-dashboard-link">Dashboard</Link><br />
-        <Link to="/Kanbas/Dashboard" id="wd-course-link">Courses</Link><br />
-        <Link to="/Kanbas/Calendar" id="wd-calendar-link">Calendar</Link><br />
-        <Link to="/Kanbas/Inbox" id="wd-inbox-link">Inbox</Link><br />
-        <Link to="/Labs" id="wd-labs-link">Labs</Link><br />
-      </div>
-
+    <div className="nav-bar">
       <div id="wd-kanbas-navigation" style={{ width: 105 }} className="list-group rounded-0 position-fixed bottom-0 top-0 bg-black z-2 d-flex flex-column align-items-center">
       <a id="wd-neu-link" target="_blank" 
         href="https://www.northeastern.edu/"
