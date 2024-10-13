@@ -3,9 +3,12 @@ import { IoIosSearch } from "react-icons/io";
 import LessonControlButtons from "../Modules/LessonControlButtons";
 import { TfiWrite } from "react-icons/tfi";
 import { FaPlus } from "react-icons/fa6";
-import { NavLink } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
+import { assignments } from "../../Database"
 
 export default function Assignments() {
+  const { cid } = useParams();
+  const filteredAssignments = assignments.filter((assignment) => assignment.course === cid);
   return (
     <div id="wd-assignments" className="pb-1">
 
@@ -34,51 +37,26 @@ export default function Assignments() {
               <FaPlus className="me-3" />
               <LessonControlButtons />
             </div>
-
           </div>
+
           <ul className="wd-assignments list-group rounded-0 ">
-            <li className="wd-assignment-link p-3 ps-1 d-flex justify-content-between align-items-center">
-              <NavLink to="/Kanbas/Courses/1234/Assignments/123" className="wd-assignment text-reset text-decoration-none d-flex align-items-center">
-                <BsGripVertical className="me-4 fs-3" />
-                <TfiWrite className="me-4 fs-3 text-success" />
-                <span className="wd-assignment-text me-2">
-                  <b>A1</b>
-                  <br />
-                  <span className="text-danger">Multiple Modules </span> | <b>Not available until</b> May 6 at 12:00am | <br />
-                  <b> Due</b> May 13 at 11:59pm | 100 pts
-                </span>
-              </NavLink>
-              <LessonControlButtons />
-            </li>
-
-            <li className="wd-assignment-link list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
-              <NavLink to="/Kanbas/Courses/1234/Assignments/123" className="wd-assignment text-reset text-decoration-none d-flex align-items-center">
-                <BsGripVertical className="me-4 fs-3" />
-                <TfiWrite className="me-4 fs-3 text-success" />
-                <span className="wd-assignment-text me-2">
-                  <b>A2</b>
-                  <br />
-                  <span className="text-danger">Multiple Modules </span> | <b>Not available until</b> May 13 at 12:00am | <br />
-                  <b> Due</b> May 20 at 11:59pm | 100 pts
-                </span>
-              </NavLink>
-              <LessonControlButtons />
-            </li>
-
-            <li className="wd-assignment-link list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
-              <NavLink to="/Kanbas/Courses/1234/Assignments/123" className="wd-assignment text-reset text-decoration-none d-flex align-items-center">
-                <BsGripVertical className="me-4 fs-3" />
-                <TfiWrite className="me-4 fs-3 text-success" />
-                <span className="wd-assignment-text me-2">
-                  <b>A3</b>
-                  <br />
-                  <span className="text-danger">Multiple Modules </span> | <b>Not available until</b> May 20 at 12:00am | <br />
-                  <b> Due</b> May 27 at 11:59pm | 100 pts
-                </span>
-              </NavLink>
-              <LessonControlButtons />
-            </li>
+            {filteredAssignments.map((assignment) => (
+              <li className="wd-assignment-link list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
+                <NavLink to={`/Kanbas/Courses/${cid}/Assignments/${assignment._id}`} className="wd-assignment text-reset text-decoration-none d-flex align-items-center">
+                  <BsGripVertical className="me-4 fs-3" />
+                  <TfiWrite className="me-4 fs-3 text-success" />
+                  <span className="wd-assignment-text me-2">
+                    <b>{assignment.title}</b>
+                    <br />
+                    <span className="text-danger">Multiple Modules </span> | <b>Not available until</b> May 13 at 12:00am | <br />
+                    <b> Due</b> May 20 at 11:59pm | 100 pts
+                  </span>
+                </NavLink>
+                <LessonControlButtons />
+              </li>
+            ))}
           </ul>
+
         </li>
       </ul >
     </div >

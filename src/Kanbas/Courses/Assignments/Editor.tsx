@@ -1,21 +1,26 @@
 import { IoIosArrowDown } from "react-icons/io";
 import "../../styles.css"
+import { useParams, useLocation, Link } from "react-router-dom";
+
+import { assignments } from "../../Database"
+
 
 export default function AssignmentEditor() {
+  const { aid } = useParams();
+  const {cid } = useParams();
+  const assignment = assignments.filter((assignment) => assignment._id === aid);
+  const selectedAssignment = assignment[0];
   return (
     <div id="wd-assignments-editor">
       <label htmlFor="wd-name" className="pb-2">Assignment Name</label>
-      <input id="wd-name" className="form-control" value="A1 - ENV + HTML" /><br />
+      <input id="wd-name" className="form-control" value={selectedAssignment.title} /><br />
       <textarea id="wd-description" className="form-control" rows={12} cols={50}>
-        The assignment is available online Submit a link to the landing page of your web application running on Netlify.
-        The landing page should include the following: Your full name and section, Links to each of the lab assignments, Link
-        to the Kanbas application, Links to all relevant source code repositories. The Kanbas application should include a link
-        to navigate back to the landing page.
+        {selectedAssignment.description}
       </textarea>
       <div className="row mb-3 pt-4 align-items-center">
         <label htmlFor="wd-points" className="col-form-label col-3 text-end">Points</label>
         <div className="col">
-          <input id="wd-points" className="form-control" value={100} />
+          <input id="wd-points" className="form-control" value={selectedAssignment.points} />
         </div>
       </div>
 
@@ -130,7 +135,7 @@ export default function AssignmentEditor() {
             <input type="date"
               id="wd-due-date"
               className="form-control mb-3"
-              value="2024-05-13" />
+              value={selectedAssignment.due_date} />
           </div>
 
           <div className="row mb-3">
@@ -139,14 +144,14 @@ export default function AssignmentEditor() {
               <input type="date"
                 id="wd-available-from"
                 className="form-control mb-1"
-                value="2024-05-06" />
+                value={selectedAssignment.available_date} />
             </div>
             <div className="col">
               <label htmlFor="wd-available-until" className="mb-1"><b>Until</b></label>
               <input type="date"
                 id="wd-available-until"
                 className="form-control mb-1"
-                value="2024-05-28" />
+                value={selectedAssignment.available_until_date} />
             </div>
           </div>
 
@@ -154,12 +159,12 @@ export default function AssignmentEditor() {
       </div>
 
       <div id="wd-edit-assignment-buttons">
-        <button id="wd-save" className="btn btn-lg btn-danger me-1 float-end" onClick={() => alert("Saved!")} type="button">
+        <Link id="wd-save" className="btn btn-lg btn-danger me-1 float-end" to={`/Kanbas/Courses/${cid}/Assignments`} type="button">
           Save
-        </button>
-        <button id="wd-cancel" className="btn btn-lg btn-secondary me-1 float-end" onClick={() => alert("Cancelled!")} type="button">
+        </Link>
+        <Link id="wd-cancel" className="btn btn-lg btn-secondary me-1 float-end" to={`/Kanbas/Courses/${cid}/Assignments`} type="button">
           Cancel
-        </button>
+        </Link>
       </div>
     </div>
   );
