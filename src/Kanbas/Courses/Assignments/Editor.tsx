@@ -1,26 +1,51 @@
 import { IoIosArrowDown } from "react-icons/io";
 import "../../styles.css"
-import { useParams, useLocation, Link } from "react-router-dom";
-
-import { assignments } from "../../Database"
+import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { useState } from "react";
+import { deleteAssignment, updateAssignment } from "./reducer";
 
 
 export default function AssignmentEditor() {
   const { aid } = useParams();
-  const {cid } = useParams();
-  const assignment = assignments.filter((assignment) => assignment._id === aid);
-  const selectedAssignment = assignment[0];
+  const { cid } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
+  
+  const selectedAssignment = useSelector((state: any) =>
+    state.assignmentsReducer.assignments.find((a: any) => a._id === aid));
+  const [title, setTitle] = useState(selectedAssignment.title || "")
+  const [description, setDescription] = useState<any>(selectedAssignment.description || "")
+  const [points, setPoints] = useState<any>(selectedAssignment.points || 100)
+  const [due_date, setDueDate] = useState<any>(selectedAssignment.due_date || "")
+  const [available_date, setAvailableDate] = useState<any>(selectedAssignment.available_date || "")
+  const [available_until_date, setAvailableUntilDate] = useState<any>(selectedAssignment.available_until_date || "")
+  const isNewAssignment = location.state?.isNewAssignment;
+
   return (
     <div id="wd-assignments-editor">
       <label htmlFor="wd-name" className="pb-2">Assignment Name</label>
-      <input id="wd-name" className="form-control" value={selectedAssignment.title} /><br />
-      <textarea id="wd-description" className="form-control" rows={12} cols={50}>
-        {selectedAssignment.description}
+      <input id="wd-name" className="form-control"
+        onChange={(event) => {
+          setTitle(event.target.value);
+        }}
+        value={title} /><br />
+      <textarea id="wd-description" className="form-control"
+        onChange={(event) => {
+          setDescription(event.target.value);
+        }}
+        rows={12} cols={50}>
+        {description}
       </textarea>
       <div className="row mb-3 pt-4 align-items-center">
         <label htmlFor="wd-points" className="col-form-label col-3 text-end">Points</label>
         <div className="col">
-          <input id="wd-points" className="form-control" value={selectedAssignment.points} />
+          <input id="wd-points" className="form-control"
+            onChange={(event) => {
+              setPoints(event.target.value);
+            }}
+            value={points} />
         </div>
       </div>
 
@@ -135,7 +160,10 @@ export default function AssignmentEditor() {
             <input type="date"
               id="wd-due-date"
               className="form-control mb-3"
-              value={selectedAssignment.due_date} />
+              onChange={(event) => {
+                setDueDate(event.target.value);
+              }}
+              value={due_date} />
           </div>
 
           <div className="row mb-3">
@@ -144,14 +172,20 @@ export default function AssignmentEditor() {
               <input type="date"
                 id="wd-available-from"
                 className="form-control mb-1"
-                value={selectedAssignment.available_date} />
+                onChange={(event) => {
+                  setAvailableDate(event.target.value);
+                }}
+                value={available_date} />
             </div>
             <div className="col">
               <label htmlFor="wd-available-until" className="mb-1"><b>Until</b></label>
               <input type="date"
                 id="wd-available-until"
                 className="form-control mb-1"
-                value={selectedAssignment.available_until_date} />
+                onChange={(event) => {
+                  setAvailableUntilDate(event.target.value);
+                }}
+                value={available_until_date} />
             </div>
           </div>
 
@@ -159,12 +193,38 @@ export default function AssignmentEditor() {
       </div>
 
       <div id="wd-edit-assignment-buttons">
-        <Link id="wd-save" className="btn btn-lg btn-danger me-1 float-end" to={`/Kanbas/Courses/${cid}/Assignments`} type="button">
+        <button
+          id="wd-save"
+          className="btn btn-lg btn-danger me-1 float-end"
+          onClick={() => {
+            dispatch(updateAssignment({
+              _id: aid,
+              title: title,
+              course: cid,
+              description: description,
+              points: points,
+              due_date: due_date,
+              available_date: available_date,
+              available_until_date: available_until_date
+            }))
+            navigate(`/Kanbas/Courses/${cid}/Assignments`);
+          }}
+          type="button">
           Save
-        </Link>
-        <Link id="wd-cancel" className="btn btn-lg btn-secondary me-1 float-end" to={`/Kanbas/Courses/${cid}/Assignments`} type="button">
+        </button>
+        <button id="wd-cancel"
+          className="btn btn-lg btn-secondary me-1 float-end"
+          onClick={() => {
+            if(isNewAssignment){
+              dispatch(deleteAssignment( aid ))
+              navigate(`/Kanbas/Courses/${cid}/Assignments`);
+            } else {
+              navigate(`/Kanbas/Courses/${cid}/Assignments`);
+            }
+          }}
+          type="button">
           Cancel
-        </Link>
+        </button>
       </div>
     </div>
   );

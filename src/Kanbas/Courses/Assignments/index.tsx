@@ -3,12 +3,23 @@ import { IoIosSearch } from "react-icons/io";
 import LessonControlButtons from "../Modules/LessonControlButtons";
 import { TfiWrite } from "react-icons/tfi";
 import { FaPlus } from "react-icons/fa6";
-import { NavLink, useParams } from "react-router-dom";
-import { assignments } from "../../Database"
+import { useNavigate, useParams } from "react-router-dom";
+import ProtectedFacultyRoute from "../ProtectedFacultyRoute";
+import { addAssignment, deleteAssignment }
+  from "./reducer";
+import { FaTrash } from "react-icons/fa";
+
+import { useSelector, useDispatch } from "react-redux";
+import { JSXElementConstructor, ReactElement, ReactNode, ReactPortal, useState } from "react";
+import AssignmentDeletor from "./AssignmentDeletor";
 
 export default function Assignments() {
   const { cid } = useParams();
-  const filteredAssignments = assignments.filter((assignment) => assignment.course === cid);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { assignments } = useSelector((state: any) => state.assignmentsReducer);
+
+  const filteredAssignments = assignments.filter((assignment: { course: string | undefined; }) => assignment.course === cid);
   return (
     <div id="wd-assignments" className="pb-1">
 
@@ -23,8 +34,28 @@ export default function Assignments() {
             className="form-control form-control-lg"
           />
         </div>
-        <button id="wd-add-assignment" className="btn btn-lg btn-danger me-1 float-end">+ Assignment</button>
-        <button id="wd-add-assignment-group" className="btn btn-lg btn-secondary me-1 float-end">+ Group</button><br /><br /><br />
+        <ProtectedFacultyRoute>
+          <button id="wd-add-assignment"
+            onClick={() => {
+              const newAssignmentId = new Date().getTime().toString();
+              dispatch(
+                addAssignment({
+                  _id: newAssignmentId,
+                  title: 'New Assignment',
+                  course: cid,
+                  description: "New Assignment Description",
+                  points: 100,
+                  due_date: "",
+                  available_date: "",
+                  available_until_date: ""
+                })
+              );
+              navigate(`/Kanbas/Courses/${cid}/Assignments/${newAssignmentId}`, { state: { isNewAssignment: true } });
+            }}
+            className="btn btn-lg btn-danger me-1 float-end">
+            + Assignment</button>
+          <button id="wd-add-assignment-group" className="btn btn-lg btn-secondary me-1 float-end">+ Group</button>
+        </ProtectedFacultyRoute><br /><br /><br />
       </div>
 
       <ul id="wd-modules" className="list-group rounded-0">
@@ -40,19 +71,42 @@ export default function Assignments() {
           </div>
 
           <ul className="wd-assignments list-group rounded-0 ">
-            {filteredAssignments.map((assignment) => (
+            {filteredAssignments.map((assignment: {
+              available_date: ReactNode;
+              due_date: ReactNode;
+              points: ReactNode;
+              _id: any;
+              title: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined;
+            }) => (
               <li className="wd-assignment-link list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
-                <NavLink to={`/Kanbas/Courses/${cid}/Assignments/${assignment._id}`} className="wd-assignment text-reset text-decoration-none d-flex align-items-center">
+                <button
+                  onClick={() => {
+                    navigate(`/Kanbas/Courses/${cid}/Assignments/${assignment._id}`, { state: { isNewAssignment: false } });
+                  }}
+                  className="wd-assignment text-reset text-decoration-none d-flex align-items-center btn btn-link text-start">
                   <BsGripVertical className="me-4 fs-3" />
                   <TfiWrite className="me-4 fs-3 text-success" />
                   <span className="wd-assignment-text me-2">
                     <b>{assignment.title}</b>
                     <br />
-                    <span className="text-danger">Multiple Modules </span> | <b>Not available until</b> May 13 at 12:00am | <br />
-                    <b> Due</b> May 20 at 11:59pm | 100 pts
+                    <span className="text-danger">Multiple Modules </span> | <b>Not available until</b> {assignment.available_date} | <br />
+                    <b> Due</b> {assignment.due_date} | {assignment.points} pts
                   </span>
-                </NavLink>
-                <LessonControlButtons />
+                </button>
+                <div className="d-flex align-items-center">
+                  <LessonControlButtons />
+                  <ProtectedFacultyRoute>
+                  <button id="wd-delete-assignment-btn"
+                  className="btn btn-link ms-2 fs-5"
+                  data-bs-toggle="modal" data-bs-target="#wd-add-module-dialog">
+                    <FaTrash />
+                  </button>
+                  <AssignmentDeletor dialogTitle="Delete Assignment"
+                   deleteAssignment={() => {
+                    dispatch(deleteAssignment(assignment._id))}} />
+                  </ProtectedFacultyRoute>
+
+                </div>
               </li>
             ))}
           </ul>
