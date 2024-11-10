@@ -1,8 +1,6 @@
-import { IoIosArrowDown } from "react-icons/io";
 import "../../styles.css"
-import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { FaPencil } from "react-icons/fa6";
 
 export default function QuizDetails() {

@@ -55,7 +55,7 @@ export default function QuizEditor() {
           <a className="nav-link active " aria-current="page" href="#">Details</a>
         </li>
         <li className="nav-item">
-          <a className="nav-link text-danger " href="#">Questions</a>
+          <a className="nav-link text-danger " href={`#/Kanbas/Courses/${cid}/Quizzes/${qid}/QuestionsEditor`}>Questions</a>
         </li>
       </ul>
       <br />
