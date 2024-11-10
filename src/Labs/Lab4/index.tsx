@@ -9,6 +9,7 @@ import ParentStateComponent from "./ParentStateComponent";
 import PassingDataOnEvent from "./PassingDataOnEvent"
 import PassingFunctions from "./PassingFunctions"
 import ReduxExamples from "./ReduxExamples";
+import Sandbox from "./Sandbox";
 import StringStateVariables from "./StringStateVariables";
 export default function Lab4() {
     function sayHello() {
@@ -18,6 +19,7 @@ export default function Lab4() {
 
     return (
         <div>
+            <Sandbox />
             <ClickEvent />
             <PassingDataOnEvent />
             <PassingFunctions theFunction={sayHello} />
