@@ -1,32 +1,48 @@
 import { IoIosArrowDown } from "react-icons/io";
 import "../../styles.css";
 import { useState } from "react";
+import { getElementError } from "@testing-library/react";
 
 export default function QuestionContainer({ question }: { question: any }) {
   const [choices, setChoices] = useState<string[]>(question.choices);
   const [type, setType] = useState<string>(question.type);
-  const [answer, setAnswer] = useState<string>(question.answer);
+  const [answers, setAnswers] = useState<string[]>(question.answers);
   const [description, setDescription] = useState<string>(question.description);
+  const [title, setTitle] = useState<string>(question.title)
+  const [points, setPoints] = useState<string>(question.points)
 
   const handleNewChoice = (choice: string) => {
     setChoices((prevChoices) => [...prevChoices, choice]);
   };
+
+  const handleUpdateChoice = (index: number, newChoice: string) => {
+    setChoices((prevChoices) => {
+      const updatedChoices = prevChoices.map((choice, idx) => 
+        idx === index ? newChoice : choice
+      );
+      if (type === "Fill In the Blank") {
+        setAnswers(updatedChoices); // Sync answers with the updated choices
+      }
+      return updatedChoices;
+    });
+  };
+
 
   return (
     <div id="wd-multiple-choice" className="w-75 border rounded p-3 m-2">
       {/* Header */}
       <div className="d-flex flex-row justify-content-between align-items-center">
         <input
-          className="form-control me-3"
-          value={question.title} // Corrected input to display title
-          readOnly // Making the input read-only if it's just for display
+          className="form-control me-3 w-50"
+          value={title} 
+          onChange={(e) => setTitle(e.target.value)}
         />
-        <div className="wd-type input-group me-3">
+        <div className="wd-type input-group me-3 w-50">
           <select
             id="wd-type"
             className="form-control"
-            value={type} // Bind select value to state or prop
-            onChange={(e) => setType(e.target.value)} // Handle change if needed
+            value={type}
+            onChange={(e) => setType(e.target.value)} 
           >
             <option value="Multiple Choice">Multiple Choice</option>
             <option value="True/False">True/False</option>
@@ -40,14 +56,14 @@ export default function QuestionContainer({ question }: { question: any }) {
           </span>
         </div>
 
-        <label className="ms-4" htmlFor="wd-question-editor-title">
+        <label className="ms-4 me-2" htmlFor="wd-question-editor-title">
           pts:
         </label>
         <input
           id="wd-question-editor-title"
-          className="form-control"
-          value={question.points} // Corrected input to display points
-          readOnly
+          className="form-control w-25"
+          value={points} 
+          onChange={(e) => setPoints(e.target.value)}
         />
       </div>
 
@@ -56,8 +72,8 @@ export default function QuestionContainer({ question }: { question: any }) {
         {type === "Multiple Choice"
           ? "Enter your question and multiple answers, then select the one correct answer."
           : type === "True/False"
-          ? "Enter your question text, then select if True or False is the correct answer."
-          : "Enter your question text, then define all possible correct answers for the blank. Students will see the question followed by a small textbox to type their answer."}
+            ? "Enter your question text, then select if True or False is the correct answer."
+            : "Enter your question text, then define all possible correct answers for the blank. Students will see the question followed by a small textbox to type their answer."}
       </p>
 
       <h4>
@@ -68,7 +84,8 @@ export default function QuestionContainer({ question }: { question: any }) {
         className="form-control"
         rows={12}
         cols={50}
-        value={question.description || ""} // Display description if available
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
       />
 
       <br />
@@ -79,25 +96,35 @@ export default function QuestionContainer({ question }: { question: any }) {
 
       {type === "True/False" ? (
         <div className="ms-3">
-          <input type="radio" name="true-false" id="wd-true" className="me-2" />
+          <input 
+          type="radio" 
+          name={`true-false-${question.id}`} 
+          id="wd-true" 
+          className="me-2" 
+          onClick={() => {setAnswers(["True"])
+          }}/>
           <label
             htmlFor="wd-true"
-            className={answer === "True" ? "text-success" : ""}
-            onClick={() => setAnswer("True")}
+            className={answers.includes("True") ? "text-success" : ""}
+            onClick={() => {setAnswers(["True"])
+            }}
           >
             True
           </label>
           <br />
           <input
             type="radio"
-            name="true-false"
+            name={`true-false-${question.id}`}
             id="wd-false"
             className="me-2"
+            onClick={() => {setAnswers(["False"])
+            }}
           />
           <label
             htmlFor="wd-false"
-            className={answer === "False" ? "text-success" : ""}
-            onClick={() => setAnswer("False")}
+            className={answers.includes("False") ? "text-success" : ""}
+            onClick={() => {setAnswers(["False"])
+            }}
           >
             False
           </label>
@@ -106,21 +133,46 @@ export default function QuestionContainer({ question }: { question: any }) {
         <div>
           {choices.map((choice, idx) => {
             return (
-              <div
-                key={idx}
-                className=" ms-3 m-4 d-flex flex-row align-items-center"
-              >
-                <label htmlFor={idx.toString()} className="me-2">
-                  Possible Answer
-                </label>
-                <input className="form-control w-25" id={idx.toString()} />
-              </div>
+              type === 'Multiple Choice' ?
+                (
+                  <div key={idx} className="ms-3 m-4 d-flex flex-row align-items-center">
+                    <input
+                      type="radio"
+                      name={`correct-answer-${question.id}`}
+                      id={`correct-answer-${idx}`}
+                      className="me-2"
+                      onClick={() => setAnswers([choices[idx]])}
+                    />
+                    <label htmlFor={`correct-answer-${idx}`} className="me-2">
+                      Possible Answer
+                    </label>
+                    <input
+                      className="form-control w-25"
+                      id={idx.toString()}
+                      onChange={(e) => handleUpdateChoice(idx, e.target.value)}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    key={idx}
+                    className=" ms-3 m-4 d-flex flex-row align-items-center"
+                  >
+                    <label htmlFor={idx.toString()} className="me-2">
+                      Possible Answer
+                    </label>
+                    <input
+                      className="form-control w-25"
+                      id={idx.toString()}
+                      onChange={(e) => handleUpdateChoice(idx, e.target.value)}
+                    />
+                  </div>
+                )
             );
           })}
           <div className="d-flex justify-content-end">
             <button
               className="btn btn-default text-danger"
-              onClick={() => handleNewChoice("test answer")}
+              onClick={() => handleNewChoice("")}
             >
               + Add Another Answer
             </button>
@@ -131,7 +183,11 @@ export default function QuestionContainer({ question }: { question: any }) {
       {/* Footer */}
       <div className="m-3">
         <button className="btn btn-secondary me-3">Cancel</button>
-        <button className="btn btn-danger">Update Question</button>
+        <button className="btn btn-danger"
+        onClick={() => {
+          console.log(choices)
+          console.log(answers)
+        }}>Update Question</button>
       </div>
     </div>
   );

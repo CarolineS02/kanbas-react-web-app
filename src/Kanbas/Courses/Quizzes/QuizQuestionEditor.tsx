@@ -18,7 +18,8 @@ export default function QuizQuestionEditor() {
       points: "0",
       type: "Multiple Choice",
       choices: [""],
-      answer: "",
+      answers: [],
+      id: "0"
     }
   ]);
 
@@ -30,7 +31,8 @@ export default function QuizQuestionEditor() {
       points: "0",
       type: "Multiple Choice",
       choices: [""],
-      answer: "",
+      answers: [],
+      id: questions.length.toString()
     }
     setQuestions((prevQuestions) => [...prevQuestions, newQuestion]);
   }
@@ -39,13 +41,13 @@ export default function QuizQuestionEditor() {
     <div id="wd-quiz-editor">
       <ul className="nav nav-tabs">
         <li className="nav-item">
-          <a className="nav-link active " aria-current="page" href="#">
+          <a className="nav-link text-danger " aria-current="page" href={`#/Kanbas/Courses/${cid}/Quizzes/${qid}/Editor`}>
             Details
           </a>
         </li>
         <li className="nav-item">
           <a
-            className="nav-link text-danger "
+            className="nav-link active "
             href={`#/Kanbas/Courses/${cid}/Quizzes/${qid}/QuestionsEditor`}
           >
             Questions
