@@ -1,7 +1,6 @@
 import { IoIosArrowDown } from "react-icons/io";
 import "../../styles.css";
 import { useState } from "react";
-import { getElementError } from "@testing-library/react";
 
 export default function QuestionContainer({ question }: { question: any }) {
   const [choices, setChoices] = useState<string[]>(question.choices);
