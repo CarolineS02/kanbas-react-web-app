@@ -5,12 +5,13 @@ import { TfiWrite } from "react-icons/tfi";
 import { FaPlus } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import ProtectedFacultyRoute from "../ProtectedFacultyRoute";
-import { addAssignment, deleteAssignment }
+import { addAssignment, deleteAssignment, setAssignments }
   from "./reducer";
 import { FaTrash } from "react-icons/fa";
-
+import * as coursesClient from "../client";
+import * as assignmentClient from "./client";
 import { useSelector, useDispatch } from "react-redux";
-import { JSXElementConstructor, ReactElement, ReactNode, ReactPortal, useState } from "react";
+import { JSXElementConstructor, ReactElement, ReactNode, ReactPortal, useEffect, useState } from "react";
 import AssignmentDeletor from "./AssignmentDeletor";
 
 export default function Assignments() {
@@ -18,8 +19,34 @@ export default function Assignments() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { assignments } = useSelector((state: any) => state.assignmentsReducer);
+  const fetchAssignments = async () => {
+    const assignments = await coursesClient.findAssignmentForCourse(cid as string);
+    dispatch(setAssignments(assignments));
+  };
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
 
-  const filteredAssignments = assignments.filter((assignment: { course: string | undefined; }) => assignment.course === cid);
+  const createAssignmentForCourse = async () => {
+    if (!cid) return;
+    const newAssignment = {
+      title: 'New Assignment',
+      course: cid,
+      description: "New Assignment Description", 
+      points: 100,
+      due_date: "",
+      available_date: "",
+      available_until_date: ""
+    };
+    const assignment = await coursesClient.createAssignmentForCourse(cid, newAssignment);
+    dispatch(addAssignment(assignment));
+    navigate(`/Kanbas/Courses/${cid}/Assignments/${assignment._id}`, { state: { isNewAssignment: true } });
+  };
+  const removeAssignment = async (assignmentId: string) => {
+    await assignmentClient.deleteAssignment(assignmentId);
+    dispatch(deleteAssignment(assignmentId));
+  };
+
   return (
     <div id="wd-assignments" className="pb-1">
 
@@ -37,20 +64,7 @@ export default function Assignments() {
         <ProtectedFacultyRoute>
           <button id="wd-add-assignment"
             onClick={() => {
-              const newAssignmentId = new Date().getTime().toString();
-              dispatch(
-                addAssignment({
-                  _id: newAssignmentId,
-                  title: 'New Assignment',
-                  course: cid,
-                  description: "New Assignment Description",
-                  points: 100,
-                  due_date: "",
-                  available_date: "",
-                  available_until_date: ""
-                })
-              );
-              navigate(`/Kanbas/Courses/${cid}/Assignments/${newAssignmentId}`, { state: { isNewAssignment: true } });
+              createAssignmentForCourse()
             }}
             className="btn btn-lg btn-danger me-1 float-end">
             + Assignment</button>
@@ -71,7 +85,7 @@ export default function Assignments() {
           </div>
 
           <ul className="wd-assignments list-group rounded-0 ">
-            {filteredAssignments.map((assignment: {
+            {assignments.map((assignment: {
               available_date: ReactNode;
               due_date: ReactNode;
               points: ReactNode;
@@ -96,14 +110,15 @@ export default function Assignments() {
                 <div className="d-flex align-items-center">
                   <LessonControlButtons />
                   <ProtectedFacultyRoute>
-                  <button id="wd-delete-assignment-btn"
-                  className="btn btn-link ms-2 fs-5"
-                  data-bs-toggle="modal" data-bs-target="#wd-add-module-dialog">
-                    <FaTrash />
-                  </button>
-                  <AssignmentDeletor dialogTitle="Delete Assignment"
-                   deleteAssignment={() => {
-                    dispatch(deleteAssignment(assignment._id))}} />
+                    <button id="wd-delete-assignment-btn"
+                      className="btn btn-link ms-2 fs-5"
+                      data-bs-toggle="modal" data-bs-target="#wd-add-module-dialog">
+                      <FaTrash />
+                    </button>
+                    <AssignmentDeletor dialogTitle="Delete Assignment"
+                      deleteAssignment={() =>
+                        removeAssignment(assignment._id)
+                      } />
                   </ProtectedFacultyRoute>
 
                 </div>

@@ -5,14 +5,17 @@ import { TfiWrite } from "react-icons/tfi";
 import { FaPlus } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import ProtectedFacultyRoute from "../ProtectedFacultyRoute";
-import { FaTrash } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { IoEllipsisVertical } from "react-icons/io5";
-import { addQuiz, updateQuiz } from "./reducer";
+import { addQuiz, setQuizzes, updateQuiz } from "./reducer";
 import GreenCheckmark from "../Modules/GreenCheckmark";
 import { TiCancel } from "react-icons/ti";
 import ProtectedStudentRoute from "../ProtectedStudentRoute";
 import ContextMenu from "./ContextMenu";
+import * as coursesClient from "../client"
+import * as quizClient from "./client"
+import { useEffect } from "react";
+
 
 export default function Quizzes() {
     const { cid } = useParams();
@@ -25,26 +28,64 @@ export default function Quizzes() {
     function getQuizAvailability(qid: string): string {
         // Find the quiz by its ID
         const quiz = filteredQuizzes.find((q: { _id: string; }) => q._id === qid);
-        
         if (!quiz) {
-          return "Quiz not found";
+            return "Quiz not found";
         }
-      
         // Convert date strings to Date objects
         const currentDate = new Date();
         const availableDate = new Date(quiz.available_date);
         const availableUntilDate = new Date(quiz.available_until_date);
-      
+
         // Determine availability based on the current date
         if (currentDate < availableDate) {
-          return `Not available until ${availableDate.toLocaleDateString()}`;
+            return `Not available until ${availableDate.toLocaleDateString()}`;
         } else if (currentDate >= availableDate && currentDate <= availableUntilDate) {
-          return "Available";
+            return "Available";
         } else {
-          return "Closed";
+            return "Closed";
         }
-      }
-      
+    }
+
+    const fetchQuizzes = async () => {
+        const quizzes = await coursesClient.findQuizForCourse(cid as string);
+        dispatch(setQuizzes(quizzes));
+    };
+    useEffect(() => {
+        fetchQuizzes();
+    }, []);
+
+    const createQuizForCourse = async () => {
+        if (!cid) return;
+        const newQuiz = {
+            title: 'New Quiz',
+            description: '',
+            course: cid,
+            type: 'Graded Quiz',
+            points: '100',
+            group: 'Quizzes',
+            shuffle_answers: true,
+            time_limit: '20',
+            has_time_limit: true,
+            multiple_attempts: false,
+            attempts: 1,
+            show_correct: false,
+            access_code: '',
+            one_question_at_a_time: true,
+            webcam_required: false,
+            lock_questions_after_answering: false,
+            due_date: '',
+            available_date: '',
+            available_until_date: ''
+        }
+        const quiz = await coursesClient.createQuizForCourse(cid, newQuiz);
+        dispatch(addQuiz(quiz));
+        navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}`, { state: { isNewQuiz: true } });
+    };
+    const saveQuiz = async (quiz: any) => {
+        await quizClient.updateQuiz(quiz);
+        dispatch(updateQuiz(quiz));
+    };
+
 
 
 
@@ -67,33 +108,7 @@ export default function Quizzes() {
                         <IoEllipsisVertical className="fs-4" />
                     </button>
                     <button id="wd-add-quiz"
-                        onClick={() => {
-                            const newQuizId = new Date().getTime().toString();
-                            dispatch(
-                                addQuiz({
-                                    _id: newQuizId,
-                                    title: 'New Quiz',
-                                    description: '',
-                                    course: cid,
-                                    type: 'Graded Quiz',
-                                    points: '100',
-                                    group: 'Quizzes',
-                                    shuffle_answers: true,
-                                    time_limit: '20',
-                                    multiple_attempts: false,
-                                    attempts: 1,
-                                    show_correct: false,
-                                    access_code: '',
-                                    one_question_at_a_time: true,
-                                    webcam_required: false,
-                                    lock_questions_after_answering: false,
-                                    due_date: '',
-                                    available_date: '',
-                                    available_until_date: '',
-                                })
-                            );
-                            navigate(`/Kanbas/Courses/${cid}/Quizzes/${newQuizId}`, { state: { isNewQuiz: true } });
-                        }}
+                        onClick={() => { createQuizForCourse() }}
                         className="btn btn-lg btn-danger me-1 float-end">
                         + Quiz</button>
                 </ProtectedFacultyRoute><br /><br /><br />
@@ -124,6 +139,7 @@ export default function Quizzes() {
                                 group: string;
                                 shuffle_answers: boolean;
                                 time_limit: string;
+                                has_time_limit: boolean;
                                 multiple_attempts: boolean;
                                 attempts: string;
                                 show_correct: boolean;
@@ -135,7 +151,9 @@ export default function Quizzes() {
                                 available_date: string;
                                 available_until_date: string;
                                 published: boolean;
-                            }) => (
+                            }) => {
+                                const modalId = `modal-${quiz._id}`;
+                                return(
                                 <li className="wd-assignment-link list-group-item p-3 ps-1 d-flex justify-content-between align-items-center"
                                     key={quiz._id}>
                                     <button
@@ -158,35 +176,17 @@ export default function Quizzes() {
                                                 <GreenCheckmark /> :
                                                 <button className="btn btn-default p-0"
                                                     onClick={() => {
-                                                        dispatch(updateQuiz({
-                                                            _id: quiz._id,
-                                                            title: quiz.title,
-                                                            description: quiz.description,
-                                                            course: cid,
-                                                            type: quiz.type,
-                                                            points: quiz.points,
-                                                            group: quiz.group,
-                                                            shuffle_answers: quiz.shuffle_answers,
-                                                            time_limit: quiz.time_limit,
-                                                            multiple_attempts: quiz.multiple_attempts,
-                                                            attempts: quiz.attempts,
-                                                            show_correct: quiz.show_correct,
-                                                            access_code: quiz.access_code,
-                                                            one_question_at_a_time: quiz.one_question_at_a_time,
-                                                            webcam_required: quiz.webcam_required,
-                                                            lock_questions_after_answering: quiz.lock_questions_after_answering,
-                                                            due_date: quiz.due_date,
-                                                            available_date: quiz.available_date,
-                                                            available_until_date: quiz.available_until_date,
+                                                        saveQuiz({
+                                                            ...quiz,
                                                             published: true
-                                                        }))
+                                                        })
                                                     }
                                                     }>
                                                     <TiCancel className="fs-3" />
                                                 </button>}
-                                            <button id="wd-context-menu-btn"
+                                            <button id={`context-menu-btn-${quiz._id}`}
                                                 className="btn btn-default ms-2 fs-5"
-                                                data-bs-toggle="modal" data-bs-target="#wd-add-module-dialog">
+                                                data-bs-toggle="modal" data-bs-target={`#modal-${quiz._id}`}>
                                                 <IoEllipsisVertical className="fs-4" />
                                             </button>
                                         </div>
@@ -195,10 +195,11 @@ export default function Quizzes() {
                                             data-bs-toggle="modal" data-bs-target="#wd-add-module-dialog">
                                             <FaTrash />
                                         </button> */}
-                                        <ContextMenu dialogTitle={`Quiz Context Menu`} quiz={quiz}/>
+                                        
+                                        <ContextMenu dialogTitle={`Quiz Context Menu`} modalId={modalId} quiz={quiz} />
                                     </div>
                                 </li>
-                            ))}
+                            )})}
                         </ul>
                     </ProtectedFacultyRoute>
                     <ProtectedStudentRoute>
@@ -213,6 +214,7 @@ export default function Quizzes() {
                                 group: string;
                                 shuffle_answers: boolean;
                                 time_limit: string;
+                                has_time_limit: boolean;
                                 multiple_attempts: boolean;
                                 attempts: string;
                                 show_correct: boolean;
@@ -237,11 +239,11 @@ export default function Quizzes() {
                                             <BsGripVertical className="me-4 fs-3" />
                                             <TfiWrite className="me-4 fs-3 text-success" />
                                             <span className="wd-assignment-text me-2">
-                                            <b>{quiz.title}</b>
-                                            <br />
-                                            <span className="text-danger"> <b>{getQuizAvailability(quiz._id)}</b> </span> | {123} Questions <br />
-                                            <b> Due</b> {quiz.due_date} | {quiz.points} pts | Score {95}
-                                        </span>
+                                                <b>{quiz.title}</b>
+                                                <br />
+                                                <span className="text-danger"> <b>{getQuizAvailability(quiz._id)}</b> </span> | {123} Questions <br />
+                                                <b> Due</b> {quiz.due_date} | {quiz.points} pts | Score {95}
+                                            </span>
                                         </button>
                                         <div className="d-flex align-items-center">
                                             <div className="float-end">

@@ -1,18 +1,50 @@
 import "../../styles.css"
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { FaPencil } from "react-icons/fa6";
+import * as coursesClient from "../client"
+import { useEffect, useState } from "react";
+import { setQuizzes } from "./reducer";
 
 export default function QuizDetails() {
     const { qid } = useParams();
     const { cid } = useParams();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
-      const selectedQuiz = useSelector((state: any) =>
-        state.quizzesReducer.quizzes.find((q: any) => q._id === qid));
-
+    const [selectedQuiz, setSelectedQuiz] = useState<{
+        title: string| undefined;
+        description: string| undefined;
+        course: string| undefined;
+        type: string| undefined;
+        points: string| undefined;
+        group: string| undefined;
+        shuffle_answers: boolean| undefined;
+        time_limit: string| undefined;
+        has_time_limit: boolean | undefined;
+        multiple_attempts: boolean| undefined;
+        attempts: string| undefined;
+        show_correct: boolean| undefined;
+        access_code: string| undefined;
+        one_question_at_a_time: boolean| undefined;
+        webcam_required: boolean| undefined;
+        lock_questions_after_answering: boolean;
+        due_date: string;
+        available_date: string;
+        available_until_date: string;
+        published: boolean;
+    } | undefined>(undefined)
+    const fetchQuizzes = async () => {
+        const quizzes = await coursesClient.findQuizForCourse(cid as string);
+        dispatch(setQuizzes(quizzes));
+        setSelectedQuiz(quizzes.find((quiz: any) => quiz._id === qid))
+    };
+    useEffect(() => {
+        fetchQuizzes();
+    }, []);
 
     return (
+        selectedQuiz ? 
         <div id="wd-assignments-editor">
             <div className="d-flex justify-content-center">
                 <button className="btn btn-secondary me-3">Preview</button>
@@ -51,7 +83,7 @@ export default function QuizDetails() {
                 <div id="wd-time-limit-preview" className="row align-items-center">
                     <label htmlFor="wd-display-grade-as" className="col-form-label col-3 text-end"><b>Time Limit </b></label>
                     <div className="col">
-                        <span> {selectedQuiz.time_limit} Minutes</span>
+                        <span> {selectedQuiz.has_time_limit? selectedQuiz.time_limit+" Minutes" : "None"} </span>
                     </div>
                 </div>
                 <div id="wd-multple-attempts-preview" className="row align-items-center">
@@ -115,5 +147,17 @@ export default function QuizDetails() {
                 </tbody>
             </table>
         </div>
+        :
+        <div id="wd-assignments-editor">
+            <div className="d-flex justify-content-center">
+                <button className="btn btn-secondary me-3">Preview</button>
+                <button className="btn btn-secondary me-3" onClick={() => navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}/Editor`)}>
+                <FaPencil  className="text-secondary me-2" />
+                    Edit
+                </button>
+            </div>
+            <hr />
+            <h1>Loading...</h1>
+            </div>
     );
 }
