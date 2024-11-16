@@ -184,8 +184,6 @@ export default function QuestionContainer({ question }: { question: any }) {
         <button className="btn btn-secondary me-3">Cancel</button>
         <button className="btn btn-danger"
         onClick={() => {
-          console.log(choices)
-          console.log(answers)
         }}>Update Question</button>
       </div>
     </div>
