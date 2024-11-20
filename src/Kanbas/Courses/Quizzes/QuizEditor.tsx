@@ -2,11 +2,14 @@ import { IoIosArrowDown } from "react-icons/io";
 import "../../styles.css"
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TiCancel } from "react-icons/ti"
 import { deleteQuiz, updateQuiz } from "./reducer";
 import { IoEllipsisVertical } from "react-icons/io5";
 import GreenCheckmark from "../Modules/GreenCheckmark";
+import * as coursesClient from "../client"
+import { setQuizzes } from "./reducer";
+import * as quizClient from "./client"
 
 export default function QuizEditor() {
   const { qid } = useParams();
@@ -15,36 +18,72 @@ export default function QuizEditor() {
   const dispatch = useDispatch();
   const location = useLocation();
 
-  const selectedQuiz = useSelector((state: any) =>
-    state.quizzesReducer.quizzes.find((q: any) => q._id === qid));
+const [points, setPoints] = useState<any>(100);
+const [type, setType] = useState<any>("Graded Quiz");
+const [title, setTitle] = useState<any>("New Quiz");
+const [description, setDescription] = useState<any>("");
+const [group, setGroup] = useState<any>("Quizzes");
+const [shuffle, setShuffle] = useState<any>(true);
+const [hasTimeLimit, setHasTimeLimit] = useState<any>(true)
+const [timeLimit, setTimeLimit] = useState<any>("20");
+const [hasMultipleAttempts, setHasMulitpleAttempts] = useState<any>(false);
+const [attempts, setAttempts] = useState<any>("1");
+const [showCorrect, setShowCorrect] = useState<any>(false);
+const [accessCode, setAccessCode] = useState<any>("");
+const [oneQuestionAtATime, setOneQuestionAtATime] = useState<any>(true);
+const [webcamRequired, setWebcamRequired] = useState<any>(false);
+const [lockQuestions, setLockQuestions] = useState<any>(false);
+const [due_date, setDueDate] = useState<any>("");
+const [available_date, setAvailableDate] = useState<any>("");
+const [available_until_date, setAvailableUntilDate] = useState<any>("");
+const [published, setPublished] = useState<any>(false)
 
-  const [points, setPoints] = useState<any>(selectedQuiz.points || 100);
-  const [type, setType] = useState<any>(selectedQuiz.type || "Graded Quiz");
-  const [title, setTitle] = useState<any>(selectedQuiz.title || "New Quiz");
-  const [description, setDescription] = useState<any>(selectedQuiz.description || "");
-  const [group, setGroup] = useState<any>(selectedQuiz.group || "Quizzes");
-  const [shuffle, setShuffle] = useState<any>(selectedQuiz.shuffle_answers || true);
-  const [hasTimeLimit, setHasTimeLimit] = useState<any>(true)
-  const [timeLimit, setTimeLimit] = useState<any>(selectedQuiz.time_limit || "20");
-  const [hasMultipleAttempts, setHasMulitpleAttempts] = useState<any>(selectedQuiz.multiple_attempts || false);
-  const [attempts, setAttempts] = useState<any>(selectedQuiz.attempts || "1");
-  const [showCorrect, setShowCorrect] = useState<any>(selectedQuiz.show_correct || false);
-  const [accessCode, setAccessCode] = useState<any>(selectedQuiz.access_code || "");
-  const [oneQuestionAtATime, setOneQuestionAtATime] = useState<any>(selectedQuiz.one_question_at_a_time || true);
-  const [webcamRequired, setWebcamRequired] = useState<any>(selectedQuiz.webcam_required || false);
-  const [lockQuestions, setLockQuestions] = useState<any>(false);
-  const [due_date, setDueDate] = useState<any>(selectedQuiz.due_date || "");
-  const [available_date, setAvailableDate] = useState<any>(selectedQuiz.available_date || "");
-  const [available_until_date, setAvailableUntilDate] = useState<any>(selectedQuiz.available_until_date || "");
+const fetchQuiz = async () => {
+    const quizzes = await coursesClient.findQuizForCourse(cid as string);
+    dispatch(setQuizzes(quizzes));
+    const quiz = quizzes.find((quiz: any) => quiz._id === qid)
+    if(quiz){
+      setPoints(quiz.points)
+      setType(quiz.type)
+      setTitle(quiz.title)
+      setDescription(quiz.description)
+      setGroup(quiz.group)
+      setShuffle(quiz.shuffle_answers)
+      setHasTimeLimit(quiz.has_time_limit)
+      setHasMulitpleAttempts(quiz.multiple_attempts)
+      setAttempts(quiz.attempts)
+      setShowCorrect(quiz.show_correct)
+      setAccessCode(quiz.access_code)
+      setOneQuestionAtATime(quiz.one_question_at_a_time)
+      setWebcamRequired(quiz.webcam_required)
+      setLockQuestions(quiz.lock_questions_after_answering)
+      setDueDate(quiz.due_date)
+      setAvailableDate(quiz.available_date)
+      setAvailableUntilDate(quiz.available_until_date)
+      setPublished(quiz.published)
+    }
+};
+const removeQuiz = async (quizId: string) => {
+  await quizClient.deleteQuiz(quizId);
+  dispatch(deleteQuiz(quizId));
+};
+const saveQuiz = async (quiz: any) => {
+  await quizClient.updateQuiz(quiz);
+  dispatch(updateQuiz(quiz));
+};
+useEffect(() => {
+  fetchQuiz();
+}, []);
+
   const isNewQuiz = location.state?.isNewQuiz;
 
   return (
     <div id="wd-quiz-editor">
       <div className="d-flex justify-content-end align-items-center">
-        <span className="me-3 fs-5">Points {selectedQuiz.points}</span>
+        <span className="me-3 fs-5">Points {points}</span>
         <span className="d-flex me-3 text-secondary align-items-center">
-          {selectedQuiz.published ? <GreenCheckmark /> : <TiCancel className="fs-3" />}
-          {selectedQuiz.published ? "Published" : "Not Published"}
+          {published ? <GreenCheckmark /> : <TiCancel className="fs-3" />}
+          {published ? "Published" : "Not Published"}
         </span>
         <button id="wd-add-assignment-group" className="btn btn-s btn-secondary float-end">
           <IoEllipsisVertical className="fs-4" />
@@ -66,12 +105,11 @@ export default function QuizEditor() {
         }}
         value={title} /><br />
       <label className="form-check-label mb-1" htmlFor="wd-description">Quiz Instructions:</label>
-      <textarea id="wd-description" className="form-control"
+      <textarea id="wd-description" className="form-control" value={description}
         onChange={(event) => {
           setDescription(event.target.value);
         }}
         rows={12} cols={50}>
-        {description}
       </textarea>
 
       <br />
@@ -141,7 +179,7 @@ export default function QuizEditor() {
               name="check-submission"
               id="wd-shuffle-answers"
               checked={shuffle}
-              onChange={(event) => { setShuffle(event.target.value) }}
+              onChange={() => { setShuffle(!shuffle) }}
             />
             <label className="form-check-label" htmlFor="wd-shuffle-answers">
               Shuffle Answers
@@ -154,7 +192,7 @@ export default function QuizEditor() {
               name="check-submission"
               id="wd-correct-answers"
               checked={showCorrect}
-              onChange={(event) => { setShowCorrect(event.target.value) }}
+              onChange={() => { setShowCorrect(!showCorrect) }}
             />
             <label className="form-check-label" htmlFor="wd-correct-answers">
               Show Correct Answers
@@ -167,7 +205,7 @@ export default function QuizEditor() {
               name="check-submission"
               id="wd-one-question"
               checked={oneQuestionAtATime}
-              onChange={(event) => { setOneQuestionAtATime(event.target.value) }}
+              onChange={() => { setOneQuestionAtATime(!oneQuestionAtATime) }}
             />
             <label className="form-check-label" htmlFor="wd-one-question">
               One Question at a Time
@@ -180,7 +218,7 @@ export default function QuizEditor() {
               name="check-submission"
               id="wd-lock-questions"
               checked={lockQuestions}
-              onChange={(event) => { setLockQuestions(event.target.value) }}
+              onChange={() => { setLockQuestions(!lockQuestions) }}
             />
             <label className="form-check-label" htmlFor="wd-lock-questions">
               Lock Questions After Answering
@@ -193,7 +231,7 @@ export default function QuizEditor() {
               name="check-submission"
               id="wd-webcam"
               checked={webcamRequired}
-              onChange={(event) => { setWebcamRequired(event.target.value) }}
+              onChange={() => { setWebcamRequired(!webcamRequired) }}
             />
             <label className="form-check-label" htmlFor="wd-webcam">
               Webcam Required
@@ -208,7 +246,7 @@ export default function QuizEditor() {
                 name="check-submission"
                 id="wd-time-limit"
                 checked={hasTimeLimit}
-                onChange={(event) => { setHasTimeLimit(event.target.value) }}
+                onChange={() => { setHasTimeLimit(!hasTimeLimit) }}
               />
               <label className="form-check-label" htmlFor="wd-time-limit">
                 Time Limit
@@ -237,7 +275,7 @@ export default function QuizEditor() {
                 name="check-submission"
                 id="wd-multiple-attempts"
                 checked={hasMultipleAttempts}
-                onChange={(event) => { setHasMulitpleAttempts(event.target.value) }}
+                onChange={() => { setHasMulitpleAttempts(!hasMultipleAttempts) }}
 
               />
               <label className="form-check-label" htmlFor="wd-multiple-attempts">
@@ -313,7 +351,7 @@ export default function QuizEditor() {
           id="wd-save"
           className="btn btn-lg btn-danger me-2"
           onClick={() => {
-            dispatch(updateQuiz({
+            saveQuiz({
               _id: qid,
               title: title,
               description: description,
@@ -323,6 +361,7 @@ export default function QuizEditor() {
               group: group,
               shuffle_answers: shuffle,
               time_limit: timeLimit,
+              has_time_limit: hasTimeLimit,
               multiple_attempts: hasMultipleAttempts,
               attempts: attempts,
               show_correct: showCorrect,
@@ -333,8 +372,8 @@ export default function QuizEditor() {
               due_date: due_date,
               available_date: available_date,
               available_until_date: available_until_date,
-              published: selectedQuiz.published
-            }))
+              published: published
+            })
             navigate(`/Kanbas/Courses/${cid}/Quizzes`);
           }}
           type="button">
@@ -344,7 +383,7 @@ export default function QuizEditor() {
           id="wd-save-and-publish"
           className="btn btn-lg btn-secondary me-2"
           onClick={() => {
-            dispatch(updateQuiz({
+            saveQuiz({
               _id: qid,
               title: title,
               description: description,
@@ -354,6 +393,7 @@ export default function QuizEditor() {
               group: group,
               shuffle_answers: shuffle,
               time_limit: timeLimit,
+              has_time_limit: hasTimeLimit,
               multiple_attempts: hasMultipleAttempts,
               attempts: attempts,
               show_correct: showCorrect,
@@ -365,7 +405,7 @@ export default function QuizEditor() {
               available_date: available_date,
               available_until_date: available_until_date,
               published: true
-            }))
+            })
             navigate(`/Kanbas/Courses/${cid}/Quizzes`);
           }}
           type="button">
@@ -375,7 +415,9 @@ export default function QuizEditor() {
           className="btn btn-lg btn-secondary me-2"
           onClick={() => {
             if (isNewQuiz) {
-              dispatch(deleteQuiz(qid))
+              if(qid){
+                removeQuiz(qid)
+              }
               navigate(`/Kanbas/Courses/${cid}/Quizzes`);
             } else {
               navigate(`/Kanbas/Courses/${cid}/Quizzes`);
