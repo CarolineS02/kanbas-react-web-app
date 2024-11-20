@@ -2,9 +2,10 @@ import { IoIosArrowDown } from "react-icons/io";
 import "../../styles.css"
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useState } from "react";
-import { deleteAssignment, updateAssignment } from "./reducer";
-
+import { useEffect, useState } from "react";
+import { deleteAssignment, setAssignments, updateAssignment } from "./reducer";
+import * as assignmentClient from "./client";
+import * as coursesClient from "../client";
 
 export default function AssignmentEditor() {
   const { aid } = useParams();
@@ -12,16 +13,43 @@ export default function AssignmentEditor() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  
-  const selectedAssignment = useSelector((state: any) =>
-    state.assignmentsReducer.assignments.find((a: any) => a._id === aid));
-  const [title, setTitle] = useState(selectedAssignment.title || "")
-  const [description, setDescription] = useState<any>(selectedAssignment.description || "")
-  const [points, setPoints] = useState<any>(selectedAssignment.points || 100)
-  const [due_date, setDueDate] = useState<any>(selectedAssignment.due_date || "")
-  const [available_date, setAvailableDate] = useState<any>(selectedAssignment.available_date || "")
-  const [available_until_date, setAvailableUntilDate] = useState<any>(selectedAssignment.available_until_date || "")
+
+  // const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
+  const [title, setTitle] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [points, setPoints] = useState<string>('100');
+  const [due_date, setDueDate] = useState<string>("");
+  const [available_date, setAvailableDate] = useState<string>("");
+  const [available_until_date, setAvailableUntilDate] = useState<string>("");
   const isNewAssignment = location.state?.isNewAssignment;
+
+  const fetchAssignments = async () => {
+    const assignments = await coursesClient.findAssignmentForCourse(cid as string);
+    dispatch(setAssignments(assignments));
+    const assignment = assignments.find((a: any) => a._id === aid);
+    if (assignment) {
+      // setSelectedAssignment(assignment);
+      setTitle(assignment.title || "");
+      setDescription(assignment.description || "");
+      setPoints(assignment.points || 100);
+      setDueDate(assignment.due_date || "");
+      setAvailableDate(assignment.available_date || "");
+      setAvailableUntilDate(assignment.available_until_date || "");
+    }
+  };
+
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
+
+  const saveAssignment = async (assignment: any) => {
+    await assignmentClient.updateAssignment(assignment);
+    dispatch(updateAssignment(assignment));
+  };
+  const removeAssignment = async (assignmentId: string) => {
+    await assignmentClient.deleteAssignment(assignmentId);
+    dispatch(deleteAssignment(assignmentId));
+  };
 
   return (
     <div id="wd-assignments-editor">
@@ -197,7 +225,7 @@ export default function AssignmentEditor() {
           id="wd-save"
           className="btn btn-lg btn-danger me-1 float-end"
           onClick={() => {
-            dispatch(updateAssignment({
+            saveAssignment({
               _id: aid,
               title: title,
               course: cid,
@@ -206,7 +234,7 @@ export default function AssignmentEditor() {
               due_date: due_date,
               available_date: available_date,
               available_until_date: available_until_date
-            }))
+            })
             navigate(`/Kanbas/Courses/${cid}/Assignments`);
           }}
           type="button">
@@ -216,7 +244,9 @@ export default function AssignmentEditor() {
           className="btn btn-lg btn-secondary me-1 float-end"
           onClick={() => {
             if(isNewAssignment){
-              dispatch(deleteAssignment( aid ))
+              if(aid){
+              removeAssignment(aid)
+              }
               navigate(`/Kanbas/Courses/${cid}/Assignments`);
             } else {
               navigate(`/Kanbas/Courses/${cid}/Assignments`);
