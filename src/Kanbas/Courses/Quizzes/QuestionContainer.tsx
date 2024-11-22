@@ -1,14 +1,18 @@
 import { IoIosArrowDown } from "react-icons/io";
 import "../../styles.css";
 import { useState } from "react";
+import { updateQuestion } from "./reducerQuestions";
+import * as quizzesClient from "./client"
+import { useDispatch } from "react-redux";
 
 export default function QuestionContainer({ question }: { question: any }) {
   const [choices, setChoices] = useState<string[]>(question.choices);
   const [type, setType] = useState<string>(question.type);
   const [answers, setAnswers] = useState<string[]>(question.answers);
-  const [description, setDescription] = useState<string>(question.description);
+  const [description, setDescription] = useState<string>(question.question);
   const [title, setTitle] = useState<string>(question.title)
   const [points, setPoints] = useState<string>(question.points)
+  const dispatch = useDispatch();
 
   const handleNewChoice = (choice: string) => {
     setChoices((prevChoices) => [...prevChoices, choice]);
@@ -16,7 +20,7 @@ export default function QuestionContainer({ question }: { question: any }) {
 
   const handleUpdateChoice = (index: number, newChoice: string) => {
     setChoices((prevChoices) => {
-      const updatedChoices = prevChoices.map((choice, idx) => 
+      const updatedChoices = prevChoices.map((choice, idx) =>
         idx === index ? newChoice : choice
       );
       if (type === "Fill In the Blank") {
@@ -26,6 +30,15 @@ export default function QuestionContainer({ question }: { question: any }) {
     });
   };
 
+  // const removeQuestion = async (questionId: string) => {
+  //   await quizzesClient.deleteQuestion(questionId);
+  //   dispatch(deleteQuestion(questionId));
+  // };
+  const saveQuestion = async (question: any) => {
+    await quizzesClient.updateQuestion(question);
+    dispatch(updateQuestion(question));
+  };
+
 
   return (
     <div id="wd-multiple-choice" className="w-75 border rounded p-3 m-2">
@@ -33,15 +46,15 @@ export default function QuestionContainer({ question }: { question: any }) {
       <div className="d-flex flex-row justify-content-between align-items-center">
         <input
           className="form-control me-3 w-50"
-          value={title} 
+          defaultValue={title}
           onChange={(e) => setTitle(e.target.value)}
         />
         <div className="wd-type input-group me-3 w-50">
           <select
             id="wd-type"
             className="form-control"
-            value={type}
-            onChange={(e) => setType(e.target.value)} 
+            defaultValue={type}
+            onChange={(e) => setType(e.target.value)}
           >
             <option value="Multiple Choice">Multiple Choice</option>
             <option value="True/False">True/False</option>
@@ -61,7 +74,7 @@ export default function QuestionContainer({ question }: { question: any }) {
         <input
           id="wd-question-editor-title"
           className="form-control w-25"
-          value={points} 
+          defaultValue={points}
           onChange={(e) => setPoints(e.target.value)}
         />
       </div>
@@ -83,7 +96,7 @@ export default function QuestionContainer({ question }: { question: any }) {
         className="form-control"
         rows={12}
         cols={50}
-        value={description}
+        defaultValue={description}
         onChange={(e) => setDescription(e.target.value)}
       />
 
@@ -95,17 +108,20 @@ export default function QuestionContainer({ question }: { question: any }) {
 
       {type === "True/False" ? (
         <div className="ms-3">
-          <input 
-          type="radio" 
-          name={`true-false-${question.id}`} 
-          id="wd-true" 
-          className="me-2" 
-          onClick={() => {setAnswers(["True"])
-          }}/>
+          <input
+            type="radio"
+            name={`true-false-${question.id}`}
+            id="wd-true"
+            className="me-2"
+            defaultChecked={answers.includes("True")}
+            onClick={() => {
+              setAnswers(["True"])
+            }} />
           <label
             htmlFor="wd-true"
             className={answers.includes("True") ? "text-success" : ""}
-            onClick={() => {setAnswers(["True"])
+            onClick={() => {
+              setAnswers(["True"])
             }}
           >
             True
@@ -116,13 +132,16 @@ export default function QuestionContainer({ question }: { question: any }) {
             name={`true-false-${question.id}`}
             id="wd-false"
             className="me-2"
-            onClick={() => {setAnswers(["False"])
+            defaultChecked={answers.includes("False")}
+            onClick={() => {
+              setAnswers(["False"])
             }}
           />
           <label
             htmlFor="wd-false"
             className={answers.includes("False") ? "text-success" : ""}
-            onClick={() => {setAnswers(["False"])
+            onClick={() => {
+              setAnswers(["False"])
             }}
           >
             False
@@ -140,6 +159,7 @@ export default function QuestionContainer({ question }: { question: any }) {
                       name={`correct-answer-${question.id}`}
                       id={`correct-answer-${idx}`}
                       className="me-2"
+                      defaultChecked={answers.includes(choice)}
                       onClick={() => setAnswers([choices[idx]])}
                     />
                     <label htmlFor={`correct-answer-${idx}`} className="me-2">
@@ -148,6 +168,7 @@ export default function QuestionContainer({ question }: { question: any }) {
                     <input
                       className="form-control w-25"
                       id={idx.toString()}
+                      defaultValue={choice}
                       onChange={(e) => handleUpdateChoice(idx, e.target.value)}
                     />
                   </div>
@@ -162,6 +183,7 @@ export default function QuestionContainer({ question }: { question: any }) {
                     <input
                       className="form-control w-25"
                       id={idx.toString()}
+                      defaultValue={choice}
                       onChange={(e) => handleUpdateChoice(idx, e.target.value)}
                     />
                   </div>
@@ -181,10 +203,29 @@ export default function QuestionContainer({ question }: { question: any }) {
 
       {/* Footer */}
       <div className="m-3">
-        <button className="btn btn-secondary me-3">Cancel</button>
-        <button className="btn btn-danger"
+        <button className="btn btn-secondary me-3"
         onClick={() => {
-        }}>Update Question</button>
+          // setChoices(question.choices);
+          // setType(question.type);
+          // setAnswers(question.answers)
+          // setDescription(question.question);
+          // setTitle(question.title)
+          // setPoints(question.points)
+          // navigate(`#/Kanbas/Courses/${cid}/Quizzes/${qid}/QuestionsEditor`)
+        }}>Cancel</button>
+        <button className="btn btn-danger"
+          onClick={() => {
+            const newQuestion = {
+              _id: question._id,
+              title: title,
+              question: description,
+              points: points,
+              type: type,
+              choices: choices,
+              answers: answers,
+            }
+            saveQuestion(newQuestion)
+          }}>Update Question</button>
       </div>
     </div>
   );

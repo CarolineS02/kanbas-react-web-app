@@ -28,7 +28,7 @@ export default function Modules() {
     if (!cid) return;
     const newModule = { name: moduleName, course: cid };
     const module = await coursesClient.createModuleForCourse(cid, newModule);
-    dispatch(addModule(module));
+    dispatch(addModule(module)); // Pass the server response directly
   };
   const removeModule = async (moduleId: string) => {
     await modulesClient.deleteModule(moduleId);

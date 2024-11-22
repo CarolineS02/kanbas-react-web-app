@@ -11,30 +11,7 @@ const quizSlice = createSlice({
       state.quizzes = action.payload;
     },
     addQuiz: (state, { payload: quiz }) => {
-      const newQuiz: any = {
-        _id: new Date().getTime().toString(),
-        title: quiz.title,
-        description: quiz.description,
-        course: quiz.course,
-        type: quiz.type,
-        points: quiz.points,
-        group: quiz.group,
-        shuffle_answers: quiz.shuffle_answers,
-        time_limit: quiz.time_limit,
-        multiple_attempts: quiz.multiple_attempts,
-        attempts: quiz.attempts,
-        show_correct: quiz.show_correct,
-        access_code: quiz.access_code,
-        one_question_at_a_time: quiz.one_question_at_a_time,
-        webcam_required: quiz.webcam_required,
-        lock_questions_after_answering: quiz.lock_questions_after_answering,
-        due_date: quiz.due_date,
-        available_date: quiz.available_date,
-        available_until_date: quiz.available_until_date,
-        published: quiz.published
-      };
-
-      state.quizzes = [...state.quizzes, newQuiz] as any;
+      state.quizzes = [...state.quizzes, quiz] as any;
     },
     deleteQuiz: (state, { payload: quizId }) => {
       state.quizzes = state.quizzes.filter(

@@ -13,6 +13,7 @@ import * as assignmentClient from "./client";
 import { useSelector, useDispatch } from "react-redux";
 import { JSXElementConstructor, ReactElement, ReactNode, ReactPortal, useEffect, useState } from "react";
 import AssignmentDeletor from "./AssignmentDeletor";
+import ProtectedStudentRoute from "../ProtectedStudentRoute";
 
 export default function Assignments() {
   const { cid } = useParams();
@@ -32,7 +33,7 @@ export default function Assignments() {
     const newAssignment = {
       title: 'New Assignment',
       course: cid,
-      description: "New Assignment Description", 
+      description: "New Assignment Description",
       points: 100,
       due_date: "",
       available_date: "",
@@ -42,6 +43,7 @@ export default function Assignments() {
     dispatch(addAssignment(assignment));
     navigate(`/Kanbas/Courses/${cid}/Assignments/${assignment._id}`, { state: { isNewAssignment: true } });
   };
+
   const removeAssignment = async (assignmentId: string) => {
     await assignmentClient.deleteAssignment(assignmentId);
     dispatch(deleteAssignment(assignmentId));
@@ -93,20 +95,35 @@ export default function Assignments() {
               title: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined;
             }) => (
               <li className="wd-assignment-link list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
-                <button
-                  onClick={() => {
-                    navigate(`/Kanbas/Courses/${cid}/Assignments/${assignment._id}`, { state: { isNewAssignment: false } });
-                  }}
-                  className="wd-assignment text-reset text-decoration-none d-flex align-items-center btn btn-link text-start">
-                  <BsGripVertical className="me-4 fs-3" />
-                  <TfiWrite className="me-4 fs-3 text-success" />
-                  <span className="wd-assignment-text me-2">
-                    <b>{assignment.title}</b>
-                    <br />
-                    <span className="text-danger">Multiple Modules </span> | <b>Not available until</b> {assignment.available_date} | <br />
-                    <b> Due</b> {assignment.due_date} | {assignment.points} pts
-                  </span>
-                </button>
+                <ProtectedFacultyRoute>
+                  <button
+                    onClick={() => {
+                      navigate(`/Kanbas/Courses/${cid}/Assignments/${assignment._id}`, { state: { isNewAssignment: false } });
+                    }}
+                    className="wd-assignment text-reset text-decoration-none d-flex align-items-center btn btn-link text-start">
+                    <BsGripVertical className="me-4 fs-3" />
+                    <TfiWrite className="me-4 fs-3 text-success" />
+                    <span className="wd-assignment-text me-2">
+                      <b>{assignment.title}</b>
+                      <br />
+                      <span className="text-danger">Multiple Modules </span> | <b>Not available until</b> {assignment.available_date} | <br />
+                      <b> Due</b> {assignment.due_date} | {assignment.points} pts
+                    </span>
+                  </button>
+                </ProtectedFacultyRoute>
+                <ProtectedStudentRoute>
+                  <button
+                    className="wd-assignment text-reset text-decoration-none d-flex align-items-center btn btn-link text-start">
+                    <BsGripVertical className="me-4 fs-3" />
+                    <TfiWrite className="me-4 fs-3 text-success" />
+                    <span className="wd-assignment-text me-2">
+                      <b>{assignment.title}</b>
+                      <br />
+                      <span className="text-danger">Multiple Modules </span> | <b>Not available until</b> {assignment.available_date} | <br />
+                      <b> Due</b> {assignment.due_date} | {assignment.points} pts
+                    </span>
+                  </button>
+                </ProtectedStudentRoute>
                 <div className="d-flex align-items-center">
                   <LessonControlButtons />
                   <ProtectedFacultyRoute>

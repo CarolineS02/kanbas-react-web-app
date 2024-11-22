@@ -1,41 +1,41 @@
 import "../../styles.css";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import QuestionContainer from "./QuestionContainer";
+import { addQuestion, setQuestions, deleteQuestion, updateQuestion } from "./reducerQuestions";
+import * as quizClient from "./client"
+import { updateQuiz } from "./reducer";
 
 export default function QuizQuestionEditor() {
   const { qid } = useParams();
   const { cid } = useParams();
-  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const location = useLocation();
-
-  const [questions, setQuestions] = useState([
-    {
-      title: "New Question",
-      question: "",
-      points: "0",
-      type: "Multiple Choice",
-      choices: [""],
-      answers: [],
-      id: "0"
-    }
-  ]);
+  const { questions } = useSelector((state: any) => state.questionsReducer);
 
 
-  const handleNewQuestion = () => {
+  const fetchQuestions = async () => {
+    const questions = await quizClient.findQuestionForQuiz(qid as string);
+    dispatch(setQuestions(questions));
+  };
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
+
+  const createQuestionForQuiz = async () => {
+    if (!qid) return;
     const newQuestion = {
       title: "New Question",
       question: "",
       points: "0",
       type: "Multiple Choice",
-      choices: [""],
+      choices: [],
       answers: [],
-      id: questions.length.toString()
-    }
-    setQuestions((prevQuestions) => [...prevQuestions, newQuestion]);
-  }
+      quiz: qid
+    };
+    const question = await quizClient.createQuestionForQuiz(qid, newQuestion);
+    dispatch(addQuestion(question)); // Pass the server response directly
+  };
 
   return (
     <div id="wd-quiz-editor">
@@ -57,64 +57,17 @@ export default function QuizQuestionEditor() {
       <br />
 
       <div id="wd-quiz-questions" className="row justify-content-center">
-        {questions.map((question) => (
-          <QuestionContainer question={question}/>
+        {questions.map((question: any) => (
+          <QuestionContainer question={question} />
         ))}
       </div>
 
       <div className=" d-flex justify-content-center">
         <button className="btn btn-secondary"
-        onClick={handleNewQuestion}
+          onClick={createQuestionForQuiz}
         >+ New Question</button>
       </div>
 
-      <hr />
-      <div
-        id="wd-edit-assignment-buttons"
-        className="d-flex justify-content-center"
-      >
-        <button
-          id="wd-save"
-          className="btn btn-lg btn-danger me-2"
-          //   onClick={() => {
-          //     dispatch(updateAssignment({
-          //       _id: aid,
-          //       title: title,
-          //       course: cid,
-          //       description: description,
-          //       points: points,
-          //       due_date: due_date,
-          //       available_date: available_date,
-          //       available_until_date: available_until_date
-          //     }))
-          //     navigate(`/Kanbas/Courses/${cid}/Assignments`);
-          //   }}
-          type="button"
-        >
-          Save
-        </button>
-        <button
-          id="wd-save-and-publish"
-          className="btn btn-lg btn-secondary me-2"
-        >
-          Save and Publish
-        </button>
-        <button
-          id="wd-cancel"
-          className="btn btn-lg btn-secondary me-2"
-          //   onClick={() => {
-          //     if(isNewQuiz){
-          //       dispatch(deleteAssignment( aid ))
-          //       navigate(`/Kanbas/Courses/${cid}/Assignments`);
-          //     } else {
-          //       navigate(`/Kanbas/Courses/${cid}/Assignments`);
-          //     }
-          //   }}
-          type="button"
-        >
-          Cancel
-        </button>
-      </div>
       <hr />
     </div>
   );

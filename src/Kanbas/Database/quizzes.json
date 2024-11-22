@@ -1,12 +1,11 @@
 [
     {
-        "_id": "Q102",
         "title": "Quiz 1",
         "description": "",
-        "course": "courseNumber",
+        "course": { "$oid": "67409d8b1ced4ef76250d4c8" },
         "type": "Graded Quiz",
         "points": "20",
-        "group": "QUIZZES",
+        "group": "Quizzes",
         "shuffle_answers": true,
         "time_limit": "30",
         "multiple_attempts": true,
@@ -22,13 +21,12 @@
         "published": false
     },
     {
-        "_id": "Q103",
         "title": "Quiz 2",
         "description": "",
-        "course": "courseNumber",
+        "course": { "$oid": "67409d8b1ced4ef76250d4c8" },
         "type": "Graded Quiz",
         "points": "20",
-        "group": "QUIZZES",
+        "group": "Quizzes",
         "shuffle_answers": true,
         "time_limit": "30",
         "multiple_attempts": true,

@@ -1,78 +1,21 @@
-import { Link, useNavigate } from "react-router-dom";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import React from "react";
 import ProtectedFacultyRoute from "./Courses/ProtectedFacultyRoute";
 import ProtectedStudentRoute from "./Courses/ProtectedStudentRoute";
-import { addEnrollment, deleteEnrollment, setEnrollments } from "./Courses/reducer";
-import * as courseClient from "./Courses/client";
-import * as userClient from "./Account/client";
 
 export default function Dashboard(
-  { course, setCourse, addNewCourse,
-    deleteCourse, updateCourse }: {
-       course: any; setCourse: (course: any) => void;
+  { course, setCourse, addNewCourse, courses,
+    deleteCourse, updateCourse, enrolling, setEnrolling, updateEnrollment }: {
+      course: any; setCourse: (course: any) => void;
+      courses: any[]
+      enrolling: boolean; setEnrolling: (enrolling: boolean) => void;
       addNewCourse: () => void; deleteCourse: (course: any) => void;
       updateCourse: () => void;
+      updateEnrollment: (courseId: string, enrolled: boolean) => void;
     }) {
 
-  const[myCourses, setMyCourses] = useState<any[]>([])
-  const dispatch = useDispatch();
-  const { currentUser } = useSelector((state: any) => state.accountReducer);
-  const { enrollments } = useSelector((state: any) => state.enrollmentsReducer);
-  const [showUnenrolled, setShowUnenrolled] = useState<boolean>(false)
-  const [visibleCourses, setVisibleCourses] = useState<any[]>([])
-  const [allCourses, setAllCourses] = useState<any[]>([]);
-  
-  const fetchEnrollments = async () => {
-    const enrollments = await courseClient.findEnrollments();
-    dispatch(setEnrollments(enrollments));
-  };
-  
-  const fetchCourses = async () => {
-    const courses = await userClient.findMyCourses();
-    setMyCourses(courses); 
-  };
-  
-  const fetchAllCourses = async () => {
-    let courses = []
-    courses = await courseClient.fetchAllCourses();
-    setAllCourses(courses);
-  };
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchEnrollments();
-      await fetchCourses();
-    };
-    fetchData();
-  }, []);
-  
-  useEffect(() => {
-    setVisibleCourses(showUnenrolled ? allCourses : myCourses);
-  }, [showUnenrolled, myCourses, allCourses]);
-  
-  const handleEnrollmentsToggle = async () => {
-    if (!showUnenrolled && allCourses.length === 0) {
-      await fetchAllCourses(); // Fetch all courses only once
-    }
-    setShowUnenrolled(!showUnenrolled);
-  };
-  
-  const enroll = async (userId: string, courseId: string) => {
-    await courseClient.createEnrollmentForCourse(userId, courseId);
-    dispatch(addEnrollment({ course: courseId, user: userId }));
-    await fetchCourses();
-  };
-  
-  const unenroll = async (userId: string, courseId: string) => {
-    await courseClient.deleteEnrollmentForCourse(userId, courseId);
-    dispatch(deleteEnrollment({ course: courseId, user: userId }));
-    await fetchCourses();
-  };
-  
-
   const getCourseLink = (cid: string) => {
-    if (myCourses.some(
+    if (courses.some(
       (course: { _id: any; }) =>
         course._id === cid
     )) {
@@ -102,16 +45,15 @@ export default function Dashboard(
       </ProtectedFacultyRoute>
 
       <ProtectedStudentRoute>
-        <button id="wd-enrollments-btn" className="btn btn-primary float-end"
-          onClick={() => handleEnrollmentsToggle()}>
-          Enrollments
-        </button>
+      <button onClick={() => setEnrolling(!enrolling)} className="float-end btn btn-primary" >
+        {enrolling ? "My Courses" : "All Courses"}
+      </button>
       </ProtectedStudentRoute>
 
-      <h2 id="wd-dashboard-published">Published Courses ({myCourses.length})</h2> <hr />
+      <h2 id="wd-dashboard-published">Published Courses ({courses.length})</h2> <hr />
       <div id="wd-dashboard-courses" className="row">
         <div className="d-flex flex-wrap row row-cols-1 row-cols-md-5 g-4">
-          {visibleCourses
+          {courses
             .map((course) => (
               <div key={course._id} className="wd-dashboard-course col" style={{ width: "300px" }}>
                 <div className="card rounded-3 overflow-hidden h-100">
@@ -128,31 +70,16 @@ export default function Dashboard(
                       <button className="btn btn-primary"> Go </button>
 
                       <ProtectedStudentRoute>
-                        {enrollments.some(
-                          (enrollment: { course: any; user: any; }) => enrollment.course === course._id && enrollment.user === currentUser._id
-                        ) ? (
-                          <button
-                            onClick={(event) => {
-                              event.preventDefault();
-                              unenroll(currentUser._id, course._id)
-                            }}
-                            className="btn btn-danger me-2 float-end"
-                            id="wd-unenroll-course-click"
-                          >
-                            Unenroll
-                          </button>
-                        ) : (
-                          <button
-                            onClick={(event) => {
-                              event.preventDefault();
-                              enroll(currentUser._id, course._id)
-                            }}
-                            className="btn btn-success float-end"
-                            id="wd-enroll-course-click"
-                          >
-                            Enroll
-                          </button>
-                        )}
+                      {enrolling && (
+                        <button onClick={(event) => {
+                          event.preventDefault();
+                          updateEnrollment(course._id, !course.enrolled);
+                        }}
+                          className={`btn ${course.enrolled ? "btn-danger" : "btn-success"} float-end`} >
+                          {course.enrolled ? "Unenroll" : "Enroll"}
+                        </button>
+                      )}
+
                       </ProtectedStudentRoute>
 
                       <ProtectedFacultyRoute>
