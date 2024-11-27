@@ -15,7 +15,7 @@ import { useSelector } from "react-redux";
 export default function Kanbas() {
   const [courses, setCourses] = useState<any[]>([]);
   const [course, setCourse] = useState<any>({
-    _id: "1234", name: "New Course", number: "New Number",
+    _id: "1234", name: "New Course", number: "New Number", image: "class20.jpg",
     startDate: "2023-09-10", endDate: "2023-12-15", description: "New Description",
   });
   const { currentUser } = useSelector((state: any) => state.accountReducer);

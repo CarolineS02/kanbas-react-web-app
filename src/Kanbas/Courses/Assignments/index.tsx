@@ -88,11 +88,11 @@ export default function Assignments() {
 
           <ul className="wd-assignments list-group rounded-0 ">
             {assignments.map((assignment: {
-              available_date: ReactNode;
-              due_date: ReactNode;
-              points: ReactNode;
+              available_date: string;
+              due_date: string;
+              points: string;
               _id: any;
-              title: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined;
+              title: string;
             }) => (
               <li className="wd-assignment-link list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
                 <ProtectedFacultyRoute>
@@ -107,7 +107,7 @@ export default function Assignments() {
                       <b>{assignment.title}</b>
                       <br />
                       <span className="text-danger">Multiple Modules </span> | <b>Not available until</b> {assignment.available_date} | <br />
-                      <b> Due</b> {assignment.due_date} | {assignment.points} pts
+                      <b> Due</b> {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : "N/A"}  | {assignment.points} pts
                     </span>
                   </button>
                 </ProtectedFacultyRoute>
@@ -120,7 +120,7 @@ export default function Assignments() {
                       <b>{assignment.title}</b>
                       <br />
                       <span className="text-danger">Multiple Modules </span> | <b>Not available until</b> {assignment.available_date} | <br />
-                      <b> Due</b> {assignment.due_date} | {assignment.points} pts
+                      <b> Due</b> {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : "N/A"} | {assignment.points} pts
                     </span>
                   </button>
                 </ProtectedStudentRoute>
