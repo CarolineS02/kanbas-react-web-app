@@ -59,7 +59,7 @@ export default function AssignmentEditor() {
           setTitle(event.target.value);
         }}
         value={title} /><br />
-      <textarea id="wd-description" className="form-control"
+      <textarea id="wd-description" className="form-control" value={description}
         onChange={(event) => {
           setDescription(event.target.value);
         }}
@@ -69,7 +69,7 @@ export default function AssignmentEditor() {
       <div className="row mb-3 pt-4 align-items-center">
         <label htmlFor="wd-points" className="col-form-label col-3 text-end">Points</label>
         <div className="col">
-          <input id="wd-points" className="form-control"
+          <input id="wd-points" className="form-control" defaultValue={points}
             onChange={(event) => {
               setPoints(event.target.value);
             }}

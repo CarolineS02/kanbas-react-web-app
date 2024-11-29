@@ -34,6 +34,7 @@ export default function QuestionContainer({ question }: { question: any }) {
   //   await quizzesClient.deleteQuestion(questionId);
   //   dispatch(deleteQuestion(questionId));
   // };
+  
   const saveQuestion = async (question: any) => {
     await quizzesClient.updateQuestion(question);
     dispatch(updateQuestion(question));
