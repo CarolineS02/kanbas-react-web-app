@@ -2,8 +2,14 @@ import "../../styles.css";
 
 export default function TakingQuestionContainer({
   question,
+  questionAnswer,
+  updateAnswer,
+  questionIndex,
 }: {
   question: any;
+  questionAnswer: any;
+  updateAnswer: (answers: any[]) => void;
+  questionIndex: number;
 }) {
   return (
     <>
@@ -25,6 +31,16 @@ export default function TakingQuestionContainer({
               id={`correct-answer-true`}
               type="radio"
               className="me-2"
+              onChange={(e) => {
+                // If checked, add to array
+                if (e.target.checked) {
+                  updateAnswer({
+                    ...questionAnswer,
+                    answer: ["True"],
+                    quiz_question: question._id,
+                  });
+                }
+              }}
             />
             <label htmlFor={`correct-answer-true`} className="me-2">
               True
@@ -35,6 +51,16 @@ export default function TakingQuestionContainer({
               id={`correct-answer-false`}
               type="radio"
               className="me-2"
+              onChange={(e) => {
+                // If checked, add to array
+                if (e.target.checked) {
+                  updateAnswer({
+                    ...questionAnswer,
+                    answer: ["False"],
+                    quiz_question: question._id,
+                  });
+                }
+              }}
             />
             <label htmlFor={`correct-answer-false`} className="me-2">
               False
@@ -52,6 +78,26 @@ export default function TakingQuestionContainer({
                       id={`correct-answer-${idx}`}
                       type="checkbox"
                       className="me-2"
+                      checked={questionAnswer.answer.includes(choice)}
+                      onChange={(e) => {
+                        // If checked, add to array
+                        if (e.target.checked) {
+                          updateAnswer({
+                            ...questionAnswer,
+                            answer: [...questionAnswer.answer, choice],
+                            quiz_question: question._id,
+                          });
+                        } else {
+                          // If unchecked, remove from array
+                          updateAnswer({
+                            ...questionAnswer,
+                            answer: questionAnswer.answer.filter(
+                              (a: any) => a !== choice
+                            ),
+                            quiz_question: question._id,
+                          });
+                        }
+                      }}
                     />
                     <label htmlFor={`correct-answer-${idx}`} className="me-2">
                       {choice}
@@ -69,6 +115,13 @@ export default function TakingQuestionContainer({
               name={`correct-answer-${question.id}`}
               type="text"
               className="me-2"
+              onChange={(e) =>
+                updateAnswer({
+                  ...questionAnswer,
+                  answer: [e.target.value],
+                  quiz_question: question._id,
+                })
+              }
             />
           </div>
         )}
