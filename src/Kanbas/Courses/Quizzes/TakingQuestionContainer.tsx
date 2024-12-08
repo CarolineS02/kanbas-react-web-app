@@ -31,6 +31,7 @@ export default function TakingQuestionContainer({
               id={`correct-answer-true`}
               type="radio"
               className="me-2"
+              checked={questionAnswer.answer.includes("True")}
               onChange={(e) => {
                 // If checked, add to array
                 if (e.target.checked) {
@@ -38,6 +39,7 @@ export default function TakingQuestionContainer({
                     ...questionAnswer,
                     answer: ["True"],
                     quiz_question: question._id,
+                    correct: question.answers.includes("True"),
                   });
                 }
               }}
@@ -51,6 +53,7 @@ export default function TakingQuestionContainer({
               id={`correct-answer-false`}
               type="radio"
               className="me-2"
+              checked={questionAnswer.answer.includes("False")}
               onChange={(e) => {
                 // If checked, add to array
                 if (e.target.checked) {
@@ -58,6 +61,7 @@ export default function TakingQuestionContainer({
                     ...questionAnswer,
                     answer: ["False"],
                     quiz_question: question._id,
+                    correct: question.answers.includes("False"),
                   });
                 }
               }}
@@ -86,6 +90,9 @@ export default function TakingQuestionContainer({
                             ...questionAnswer,
                             answer: [...questionAnswer.answer, choice],
                             quiz_question: question._id,
+                            correct: questionAnswer.answer.every(
+                              (ans: string) => question.answers.includes(ans)
+                            ),
                           });
                         } else {
                           // If unchecked, remove from array
@@ -95,6 +102,9 @@ export default function TakingQuestionContainer({
                               (a: any) => a !== choice
                             ),
                             quiz_question: question._id,
+                            correct: questionAnswer.answer.every(
+                              (ans: string) => question.answers.includes(ans)
+                            ),
                           });
                         }
                       }}
@@ -115,11 +125,17 @@ export default function TakingQuestionContainer({
               name={`correct-answer-${question.id}`}
               type="text"
               className="me-2"
+              value={
+                questionAnswer.answer.length === 1
+                  ? questionAnswer.answer[0]
+                  : ""
+              }
               onChange={(e) =>
                 updateAnswer({
                   ...questionAnswer,
                   answer: [e.target.value],
                   quiz_question: question._id,
+                  correct: question.answers.includes(e.target.value),
                 })
               }
             />

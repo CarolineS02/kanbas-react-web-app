@@ -24,20 +24,19 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
     setQuizInfo(resultQuiz);
 
     var resultAnswers = await quizClient.getAnswersForQuiz(
-        qid as string,
-        0,
-        currentUser._id
-      ); // 0 is placeholder for attempt number
-      if (Array.isArray(resultAnswers) && resultAnswers.length === 0) {
-        resultAnswers = Array.from({ length: results.length }, () => ({
-          quiz: qid,
-          user: currentUser._id,
-          answer: [],
-          attempt: 1,
-        }));
-      }
-      setQuizAnswers(resultAnswers);
-
+      qid as string,
+      0,
+      currentUser._id
+    ); // 0 is placeholder for attempt number
+    if (Array.isArray(resultAnswers) && resultAnswers.length === 0) {
+      resultAnswers = Array.from({ length: results.length }, () => ({
+        quiz: qid,
+        user: currentUser._id,
+        answer: [],
+        attempt: 1,
+      }));
+    }
+    setQuizAnswers(resultAnswers);
   };
   useEffect(() => {
     fetchQuiz();
@@ -45,10 +44,8 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
   }, []);
 
   const submitQuiz = async () => {
-    quizAnswers.map(
-      async (a) =>
-        await quizClient.createAnswer(a)
-    );
+    quizAnswers.map(async (a) => await quizClient.createAnswer(a));
+    navigate(`/Quizzes`);
   };
 
   const updateAnswer = (updatedAnswer: any) => {
