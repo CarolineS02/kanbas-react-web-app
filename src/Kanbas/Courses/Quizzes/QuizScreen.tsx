@@ -25,7 +25,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
     resultAnswers: any[],
     results: any[],
     attemptNum: number
-  ): any[] => {
+  ) => {
     if (Array.isArray(resultAnswers) && resultAnswers.length === 0) {
       // User has not previously answered the questions
       resultAnswers = Array.from({ length: results.length }, () => ({
@@ -43,9 +43,10 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
           ? new Date(resultAnswers[0].time_started)
           : new Date()
       );
-      setAttempt(resultAnswers[0].attempt);
     }
-    return resultAnswers;
+    resultAnswers.sort((ans1: any, ans2: any) => ans1.sequence - ans2.sequence);
+    setQuizAnswers(resultAnswers);
+    setAttempt(attemptNum);
   };
 
   const fetchQuiz = async () => {
@@ -59,12 +60,14 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
       qid as string,
       currentUser._id
     );
-    resultAnswers = prepareNewAnswers(resultAnswers, results, 0);
-    if (currentUser.role === "STUDENT") {
+    if (
+      currentUser.role === "STUDENT" &&
+      Array.isArray(resultAnswers) &&
+      resultAnswers.length > 0
+    ) {
       setCorrections(true);
     }
-    resultAnswers.sort((ans1: any, ans2: any) => ans1.sequence - ans2.sequence);
-    setQuizAnswers(resultAnswers);
+    prepareNewAnswers(resultAnswers, results, 1);
   };
   useEffect(() => {
     fetchQuiz();
@@ -76,7 +79,8 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
   };
 
   const retakeQuiz = async () => {
-    prepareNewAnswers([], quizQuestions, attempt);
+    const nextAttempt = attempt + 1;
+    prepareNewAnswers([], quizQuestions, nextAttempt);
     setCorrections(false);
   };
 
@@ -101,7 +105,9 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
       }
       totalScore += scorePerQ;
     });
-    return `${correctScore}/${totalScore} or ${correctScore / totalScore * 100}%`;
+    return `${correctScore}/${totalScore} or ${
+      (correctScore / totalScore) * 100
+    }%`;
   };
 
   return (

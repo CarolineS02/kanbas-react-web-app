@@ -6,7 +6,7 @@ export default function TakingQuestionContainer({
   updateAnswer,
   questionIndex,
   setTimeUpdated,
-  corrections
+  corrections,
 }: {
   question: any;
   questionAnswer: any;
@@ -18,9 +18,17 @@ export default function TakingQuestionContainer({
   return (
     <>
       {/* Header */}
-      <div className="w-75 p-2 pt-3 border d-flex flex-row justify-content-between align-items-center bg-secondary">
-        <h4>{question.title}</h4>
-        <h5>{question.points} pts</h5>
+      <div
+        className={`w-75 p-2 pt-3 border d-flex flex-row justify-content-between align-items-center ${
+          corrections && questionAnswer.correct && "bg-success"
+        } 
+      ${corrections && !questionAnswer.correct && "bg-danger"}
+      ${!corrections && "bg-secondary"}`}
+      >
+        <h4 className={`${corrections && "text-white"}`}>{question.title}</h4>
+        <h5 className={`${corrections && "text-white"}`}>
+          {question.points} pts
+        </h5>
       </div>
       <div className="w-75 border">
         {/* Question body */}
