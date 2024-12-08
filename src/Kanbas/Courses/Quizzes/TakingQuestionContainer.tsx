@@ -42,6 +42,7 @@ export default function TakingQuestionContainer({
                     answer: ["True"],
                     quiz_question: question._id,
                     correct: question.answers.includes("True"),
+                    sequence: questionIndex,
                   });
                   setTimeUpdated(new Date().toString());
                 }
@@ -65,6 +66,7 @@ export default function TakingQuestionContainer({
                     answer: ["False"],
                     quiz_question: question._id,
                     correct: question.answers.includes("False"),
+                    sequence: questionIndex,
                   });
                   setTimeUpdated(new Date().toString());
                 }
@@ -97,6 +99,7 @@ export default function TakingQuestionContainer({
                             correct: questionAnswer.answer.every(
                               (ans: string) => question.answers.includes(ans)
                             ),
+                            sequence: questionIndex,
                           });
                         } else {
                           // If unchecked, remove from array
@@ -109,6 +112,7 @@ export default function TakingQuestionContainer({
                             correct: questionAnswer.answer.every(
                               (ans: string) => question.answers.includes(ans)
                             ),
+                            sequence: questionIndex,
                           });
                         }
                         setTimeUpdated(new Date().toString());
@@ -141,6 +145,7 @@ export default function TakingQuestionContainer({
                   answer: [e.target.value],
                   quiz_question: question._id,
                   correct: question.answers.includes(e.target.value),
+                  sequence: questionIndex,
                 });
                 setTimeUpdated(new Date().toString());
               }}

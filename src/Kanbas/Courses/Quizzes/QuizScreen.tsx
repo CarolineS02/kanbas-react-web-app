@@ -27,12 +27,10 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
     setQuizInfo(resultQuiz);
 
     // TODO: if user is a student and the quiz can have multiple attempts, use setAttempt
-
-    var resultAnswers = await quizClient.getAnswersForQuiz(
+    var resultAnswers = await quizClient.getLatestAnswersForQuiz(
       qid as string,
-      attempt,
       currentUser._id
-    ); // 0 is placeholder for attempt number
+    );
     if (Array.isArray(resultAnswers) && resultAnswers.length === 0) {
       // User has not previously answered the questions
       resultAnswers = Array.from({ length: results.length }, () => ({
@@ -50,6 +48,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
           : new Date()
       );
     }
+    resultAnswers.sort((ans1: any, ans2: any) => ans1.sequence - ans2.sequence);
     setQuizAnswers(resultAnswers);
   };
   useEffect(() => {
@@ -90,7 +89,9 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
       >
         {quizQuestions.length > 1 && quizAnswers.length > 1 && (
           <TakingQuestionContainer
-            question={quizQuestions[questionIndex]}
+            question={quizQuestions.find(
+              (q: any) => q.sequence === questionIndex
+            )}
             questionAnswer={quizAnswers[questionIndex]}
             updateAnswer={updateAnswer}
             questionIndex={questionIndex}
@@ -109,6 +110,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
         )}
       </div>
 
+      {/* TODO: put score in this box and change submit quiz to retake quiz if allowed more attempts */}
       <div className="border d-flex p-2 mb-3 flex-row-reverse align-items-center">
         <button
           className="btn btn-secondary float-end me-2"

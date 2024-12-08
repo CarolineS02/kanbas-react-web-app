@@ -32,7 +32,8 @@ export default function QuizQuestionEditor() {
       type: "Multiple Choice",
       choices: [],
       answers: [],
-      quiz: qid
+      quiz: qid,
+      sequence: questions.length
     };
     const question = await quizClient.createQuestionForQuiz(qid, newQuestion);
     dispatch(addQuestion(question)); // Pass the server response directly

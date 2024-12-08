@@ -233,7 +233,7 @@ export default function Quizzes() {
                                         className="wd-assignment-link list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
                                         <button
                                             onClick={() => {
-                                                // navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}`);
+                                                navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/QuizScreen`);
                                             }}
                                             className="wd-assignment text-reset text-decoration-none d-flex align-items-center btn btn-link text-start">
                                             <BsGripVertical className="me-4 fs-3" />
