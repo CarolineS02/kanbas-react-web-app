@@ -19,6 +19,34 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const [timeUpdated, setTimeUpdated] = useState<string>(new Date().toString());
   const [attempt, setAttempt] = useState<number>(1);
+  const [corrections, setCorrections] = useState<boolean>(false);
+
+  const prepareNewAnswers = (
+    resultAnswers: any[],
+    results: any[],
+    attemptNum: number
+  ): any[] => {
+    if (Array.isArray(resultAnswers) && resultAnswers.length === 0) {
+      // User has not previously answered the questions
+      resultAnswers = Array.from({ length: results.length }, () => ({
+        quiz: qid,
+        user: currentUser._id,
+        answer: [],
+        attempt: attemptNum,
+        time_started: startDate,
+      }));
+      setStartDate(new Date());
+    } else {
+      // User has previously done the quiz
+      setStartDate(
+        resultAnswers.length > 0
+          ? new Date(resultAnswers[0].time_started)
+          : new Date()
+      );
+      setAttempt(resultAnswers[0].attempt);
+    }
+    return resultAnswers;
+  };
 
   const fetchQuiz = async () => {
     const results = await quizClient.findQuestionForQuiz(qid as string);
@@ -31,22 +59,9 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
       qid as string,
       currentUser._id
     );
-    if (Array.isArray(resultAnswers) && resultAnswers.length === 0) {
-      // User has not previously answered the questions
-      resultAnswers = Array.from({ length: results.length }, () => ({
-        quiz: qid,
-        user: currentUser._id,
-        answer: [],
-        attempt: 1,
-        time_started: startDate,
-      }));
-    } else {
-      // User has previously done the quiz
-      setStartDate(
-        resultAnswers.length > 0
-          ? new Date(resultAnswers[0].time_started)
-          : new Date()
-      );
+    resultAnswers = prepareNewAnswers(resultAnswers, results, 0);
+    if (currentUser.role === "STUDENT") {
+      setCorrections(true);
     }
     resultAnswers.sort((ans1: any, ans2: any) => ans1.sequence - ans2.sequence);
     setQuizAnswers(resultAnswers);
@@ -60,12 +75,33 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
     navigate(`/Kanbas/Courses/${cid}/Quizzes`);
   };
 
+  const retakeQuiz = async () => {
+    prepareNewAnswers([], quizQuestions, attempt);
+    setCorrections(false);
+  };
+
   const updateAnswer = (updatedAnswer: any) => {
     setQuizAnswers((prevAnswers) =>
       prevAnswers.map((prevAnswer, idx) =>
         idx === questionIndex ? updatedAnswer : prevAnswer
       )
     );
+  };
+
+  const calculateScore = (): string => {
+    var correctScore = 0;
+    var totalScore = 0;
+    quizAnswers.map(async (a) => {
+      const matchedQuestion: any | undefined = quizQuestions.find(
+        (q: any) => q.sequence === a.sequence
+      );
+      let scorePerQ = parseInt(matchedQuestion.points);
+      if (a.correct && matchedQuestion && matchedQuestion !== undefined) {
+        correctScore += scorePerQ;
+      }
+      totalScore += scorePerQ;
+    });
+    return `${correctScore}/${totalScore} or ${correctScore / totalScore * 100}%`;
   };
 
   return (
@@ -96,6 +132,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
             updateAnswer={updateAnswer}
             questionIndex={questionIndex}
             setTimeUpdated={setTimeUpdated}
+            corrections={corrections}
           />
         )}
         {questionIndex < quizQuestions.length - 1 && (
@@ -110,16 +147,28 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
         )}
       </div>
 
-      {/* TODO: put score in this box and change submit quiz to retake quiz if allowed more attempts */}
-      <div className="border d-flex p-2 mb-3 flex-row-reverse align-items-center">
-        <button
-          className="btn btn-secondary float-end me-2"
-          onClick={submitQuiz}
-        >
-          Submit Quiz
-        </button>
-        <p className="me-2 float-end">Quiz saved at {timeUpdated}</p>
-      </div>
+      {!corrections && (
+        <div className="border d-flex p-2 mb-3 flex-row-reverse align-items-center">
+          <button
+            className="btn btn-secondary float-end me-2"
+            onClick={submitQuiz}
+          >
+            Submit Quiz
+          </button>
+          <p className="me-2 float-end">Quiz saved at {timeUpdated}</p>
+        </div>
+      )}
+      {corrections && (
+        <div className="border d-flex p-2 mb-3 flex-row-reverse align-items-center">
+          <button
+            className="btn btn-secondary float-end me-2"
+            onClick={retakeQuiz}
+          >
+            Retake Quiz
+          </button>
+          <p className="me-2 text-success">Score: {calculateScore()}</p>
+        </div>
+      )}
 
       {preview && (
         <p

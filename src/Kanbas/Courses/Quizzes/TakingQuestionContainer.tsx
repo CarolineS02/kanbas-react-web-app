@@ -6,12 +6,14 @@ export default function TakingQuestionContainer({
   updateAnswer,
   questionIndex,
   setTimeUpdated,
+  corrections
 }: {
   question: any;
   questionAnswer: any;
   updateAnswer: (answers: any[]) => void;
   questionIndex: number;
   setTimeUpdated: (time: string) => void;
+  corrections: boolean;
 }) {
   return (
     <>
@@ -34,6 +36,7 @@ export default function TakingQuestionContainer({
               type="radio"
               className="me-2"
               checked={questionAnswer.answer.includes("True")}
+              disabled={corrections}
               onChange={(e) => {
                 // If checked, add to array
                 if (e.target.checked) {
@@ -58,6 +61,7 @@ export default function TakingQuestionContainer({
               type="radio"
               className="me-2"
               checked={questionAnswer.answer.includes("False")}
+              disabled={corrections}
               onChange={(e) => {
                 // If checked, add to array
                 if (e.target.checked) {
@@ -89,6 +93,7 @@ export default function TakingQuestionContainer({
                       type="checkbox"
                       className="me-2"
                       checked={questionAnswer.answer.includes(choice)}
+                      disabled={corrections}
                       onChange={(e) => {
                         // If checked, add to array
                         if (e.target.checked) {
@@ -139,6 +144,7 @@ export default function TakingQuestionContainer({
                   ? questionAnswer.answer[0]
                   : ""
               }
+              disabled={corrections}
               onChange={(e) => {
                 updateAnswer({
                   ...questionAnswer,
