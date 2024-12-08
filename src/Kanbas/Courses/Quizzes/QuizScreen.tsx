@@ -67,7 +67,11 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
     ) {
       setCorrections(true);
     }
-    prepareNewAnswers(resultAnswers, results, 1);
+    const newAttempt =
+      Array.isArray(resultAnswers) && resultAnswers.length !== 0
+        ? resultAnswers[0].attempt
+        : 1;
+    prepareNewAnswers(resultAnswers, results, newAttempt);
   };
   useEffect(() => {
     fetchQuiz();
@@ -169,9 +173,15 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
           <button
             className="btn btn-secondary float-end me-2"
             onClick={retakeQuiz}
+            disabled={
+              !quizInfo.multiple_attempts ||
+              (quizInfo.multiple_attempts &&
+              attempt >= parseInt(quizInfo.attempts))
+            }
           >
             Retake Quiz
           </button>
+          <p className="me-2 text-secondary">Attempt: {attempt}</p>
           <p className="me-2 text-success">Score: {calculateScore()}</p>
         </div>
       )}
