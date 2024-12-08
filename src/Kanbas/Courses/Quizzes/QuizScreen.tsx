@@ -13,7 +13,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [quizInfo, setQuizInfo] = useState<any | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [startDate, setStartDate] = useState<string>("");
+  const [startDate, setStartDate] = useState<Date>(new Date());
   const navigate = useNavigate();
   const [quizAnswers, setQuizAnswers] = useState<any[]>([]);
   const { currentUser } = useSelector((state: any) => state.accountReducer);
@@ -34,22 +34,30 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
       currentUser._id
     ); // 0 is placeholder for attempt number
     if (Array.isArray(resultAnswers) && resultAnswers.length === 0) {
+      // User has not previously answered the questions
       resultAnswers = Array.from({ length: results.length }, () => ({
         quiz: qid,
         user: currentUser._id,
         answer: [],
         attempt: 1,
+        time_started: startDate,
       }));
+    } else {
+      // User has previously done the quiz
+      setStartDate(
+        resultAnswers.length > 0
+          ? new Date(resultAnswers[0].time_started)
+          : new Date()
+      );
     }
     setQuizAnswers(resultAnswers);
   };
   useEffect(() => {
     fetchQuiz();
-    setStartDate(new Date().toString());
   }, []);
 
   const submitQuiz = async () => {
-    quizAnswers.map(async (a) => await quizClient.createAnswer(a));
+    quizAnswers.map(async (a) => await quizClient.createOrUpdateAnswer(a));
     navigate(`/Kanbas/Courses/${cid}/Quizzes`);
   };
 
@@ -72,7 +80,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
           This is a preview of the published version of the quiz
         </p>
       )}
-      <p>Started: {startDate}</p>
+      <p>Started: {startDate.toString()}</p>
       <h2>Quiz Intructions</h2>
       <hr />
 

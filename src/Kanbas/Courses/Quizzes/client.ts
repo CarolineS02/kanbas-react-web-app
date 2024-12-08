@@ -19,10 +19,16 @@ export const getQuiz = async (quizId: string) => {
   return data;
 };
 
-export const getAnswersForQuiz = async (quizId: string, attempt: number, userId: string) => {
-    const response = await axios.get(`${ANSWERS_API}/${quizId}/${userId}/${attempt}`);
-    return response.data;
-  };
+export const getAnswersForQuiz = async (
+  quizId: string,
+  attempt: number,
+  userId: string
+) => {
+  const response = await axios.get(
+    `${ANSWERS_API}/${quizId}/${userId}/${attempt}`
+  );
+  return response.data;
+};
 
 export const findQuestionForQuiz = async (quizId: string) => {
   const response = await axios.get(`${QUIZZES_API}/${quizId}/questions`);
@@ -50,12 +56,7 @@ export const deleteQuestion = async (questionId: string) => {
   return response.data;
 };
 
-export const createAnswer = async (answer: any) => {
+export const createOrUpdateAnswer = async (answer: any) => {
   const response = await axios.post(`${ANSWERS_API}`, answer);
-  return response.data;
-};
-
-export const updateOrCreateAnswer = async (answer: any) => {
-  const response = await axios.put(`${ANSWERS_API}`, answer);
   return response.data;
 };
