@@ -13,6 +13,7 @@ export default function Labs() {
       <div>
         <h1>Labs</h1>
         <p> Website by: Caroline Southard-Smith, CS4550 Section 02</p>
+        <p> Final project (Quizzes) by: Caroline Southard-Smith Section 02 and Maia Lemos Section 01</p>
         <TOC />
         <Routes>
           <Route path="/" element={<Navigate to="Lab1" />} />
