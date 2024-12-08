@@ -54,3 +54,8 @@ export const createAnswer = async (answer: any) => {
   const response = await axios.post(`${ANSWERS_API}`, answer);
   return response.data;
 };
+
+export const updateOrCreateAnswer = async (answer: any) => {
+  const response = await axios.put(`${ANSWERS_API}`, answer);
+  return response.data;
+};

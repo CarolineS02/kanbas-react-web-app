@@ -6,6 +6,7 @@ import * as quizClient from "./client";
 import TakingQuestionContainer from "./TakingQuestionContainer";
 import { RiErrorWarningLine } from "react-icons/ri";
 import { LiaPencilAltSolid } from "react-icons/lia";
+import { FaRegQuestionCircle } from "react-icons/fa";
 
 export default function QuizScreen({ preview }: { preview: boolean }) {
   const { qid, cid } = useParams();
@@ -17,6 +18,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
   const [quizAnswers, setQuizAnswers] = useState<any[]>([]);
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const [timeUpdated, setTimeUpdated] = useState<string>(new Date().toString());
+  const [attempt, setAttempt] = useState<number>(1);
 
   const fetchQuiz = async () => {
     const results = await quizClient.findQuestionForQuiz(qid as string);
@@ -24,9 +26,11 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
     const resultQuiz = await quizClient.getQuiz(qid as string);
     setQuizInfo(resultQuiz);
 
+    // TODO: if user is a student and the quiz can have multiple attempts, use setAttempt
+
     var resultAnswers = await quizClient.getAnswersForQuiz(
       qid as string,
-      0,
+      attempt,
       currentUser._id
     ); // 0 is placeholder for attempt number
     if (Array.isArray(resultAnswers) && resultAnswers.length === 0) {
@@ -46,7 +50,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
 
   const submitQuiz = async () => {
     quizAnswers.map(async (a) => await quizClient.createAnswer(a));
-    navigate(`/Quizzes`);
+    navigate(`/Kanbas/Courses/${cid}/Quizzes`);
   };
 
   const updateAnswer = (updatedAnswer: any) => {
@@ -74,7 +78,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
 
       <div
         id="wd-quiz-questions-and-answers"
-        className="row justify-content-center mb-2"
+        className="row d-flex flex-row justify-content-center mb-2"
       >
         {quizQuestions.length > 1 && quizAnswers.length > 1 && (
           <TakingQuestionContainer
@@ -123,6 +127,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
       <div className="list-group">
         {quizQuestions.map((quizQuestion: any, idx: number) => (
           <ul className="text-danger" onClick={() => setQuestionIndex(idx)}>
+            <FaRegQuestionCircle className="text-secondary me-1" />
             {idx === questionIndex ? (
               <b>{quizQuestion.title}</b>
             ) : (
