@@ -5,11 +5,13 @@ export default function TakingQuestionContainer({
   questionAnswer,
   updateAnswer,
   questionIndex,
+  setTimeUpdated,
 }: {
   question: any;
   questionAnswer: any;
   updateAnswer: (answers: any[]) => void;
   questionIndex: number;
+  setTimeUpdated: (time: string) => void;
 }) {
   return (
     <>
@@ -41,6 +43,7 @@ export default function TakingQuestionContainer({
                     quiz_question: question._id,
                     correct: question.answers.includes("True"),
                   });
+                  setTimeUpdated(new Date().toString());
                 }
               }}
             />
@@ -63,6 +66,7 @@ export default function TakingQuestionContainer({
                     quiz_question: question._id,
                     correct: question.answers.includes("False"),
                   });
+                  setTimeUpdated(new Date().toString());
                 }
               }}
             />
@@ -107,6 +111,7 @@ export default function TakingQuestionContainer({
                             ),
                           });
                         }
+                        setTimeUpdated(new Date().toString());
                       }}
                     />
                     <label htmlFor={`correct-answer-${idx}`} className="me-2">
@@ -130,14 +135,15 @@ export default function TakingQuestionContainer({
                   ? questionAnswer.answer[0]
                   : ""
               }
-              onChange={(e) =>
+              onChange={(e) => {
                 updateAnswer({
                   ...questionAnswer,
                   answer: [e.target.value],
                   quiz_question: question._id,
                   correct: question.answers.includes(e.target.value),
-                })
-              }
+                });
+                setTimeUpdated(new Date().toString());
+              }}
             />
           </div>
         )}

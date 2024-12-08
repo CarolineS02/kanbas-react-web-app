@@ -16,6 +16,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
   const navigate = useNavigate();
   const [quizAnswers, setQuizAnswers] = useState<any[]>([]);
   const { currentUser } = useSelector((state: any) => state.accountReducer);
+  const [timeUpdated, setTimeUpdated] = useState<string>(new Date().toString());
 
   const fetchQuiz = async () => {
     const results = await quizClient.findQuestionForQuiz(qid as string);
@@ -81,6 +82,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
             questionAnswer={quizAnswers[questionIndex]}
             updateAnswer={updateAnswer}
             questionIndex={questionIndex}
+            setTimeUpdated={setTimeUpdated}
           />
         )}
         {questionIndex < quizQuestions.length - 1 && (
@@ -102,7 +104,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
         >
           Submit Quiz
         </button>
-        <p className="me-2">Quiz saved at ...</p>
+        <p className="me-2 float-end">Quiz saved at {timeUpdated}</p>
       </div>
 
       {preview && (
