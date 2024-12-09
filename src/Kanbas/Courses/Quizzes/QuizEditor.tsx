@@ -169,6 +169,7 @@ useEffect(() => {
             onChange={(event) => {
               setPoints(event.target.value);
             }}
+            type="number"
             value={points} />
           <br />
           <label className="col-form-label "><b>Options</b></label>
@@ -255,6 +256,7 @@ useEffect(() => {
             <div className="d-flex flex-row col-7 ms-3 mb-2 align-items-center">
               <input
                 id="wd-time-minutes"
+                type="number"
                 className="form-control me-2 w-50"
                 onChange={(event) => {
                   setTimeLimit(event.target.value);
@@ -290,6 +292,8 @@ useEffect(() => {
                   setAttempts(event.target.value);
                 }}
                 value={attempts}
+                type="number"
+                readOnly={!hasMultipleAttempts}
               />
               <label className="form-check-label" htmlFor="wd-attempt-number">
                 Attempt(s)
@@ -374,7 +378,7 @@ useEffect(() => {
               available_until_date: available_until_date,
               published: published
             })
-            navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+            navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}`);
           }}
           type="button">
           Save

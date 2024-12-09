@@ -76,6 +76,7 @@ export default function QuestionContainer({ question }: { question: any }) {
           id="wd-question-editor-title"
           className="form-control w-25"
           defaultValue={points}
+          type="number"
           onChange={(e) => setPoints(e.target.value)}
         />
       </div>

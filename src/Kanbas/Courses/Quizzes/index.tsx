@@ -129,6 +129,9 @@ export default function Quizzes() {
 
                     <ProtectedFacultyRoute>
                         <ul className="wd-assignments list-group rounded-0 ">
+                            {filteredQuizzes.length===0 ? 
+                            <p className=" text-secondary border-none m-2">Click "+ Quiz" to create a new quiz</p>
+                            : <></>}
                             {filteredQuizzes.map((quiz: {
                                 _id: string;
                                 title: string;
@@ -172,18 +175,16 @@ export default function Quizzes() {
                                     </button>
                                     <div className="d-flex align-items-center">
                                         <div className="float-end">
-                                            {quiz.published ?
-                                                <GreenCheckmark /> :
                                                 <button className="btn btn-default p-0"
                                                     onClick={() => {
                                                         saveQuiz({
                                                             ...quiz,
-                                                            published: true
+                                                            published: !quiz.published
                                                         })
                                                     }
                                                     }>
-                                                    <TiCancel className="fs-3" />
-                                                </button>}
+                                                    {!quiz.published ? <TiCancel className="fs-3" /> : <GreenCheckmark />}
+                                                </button>
                                             <button id={`context-menu-btn-${quiz._id}`}
                                                 className="btn btn-default ms-2 fs-5"
                                                 data-bs-toggle="modal" data-bs-target={`#modal-${quiz._id}`}>

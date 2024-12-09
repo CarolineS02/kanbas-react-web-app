@@ -44,11 +44,11 @@ export default function Dashboard(
         <hr />
       </ProtectedFacultyRoute>
 
-      <ProtectedStudentRoute>
+      {/* <ProtectedStudentRoute> */}
       <button onClick={() => setEnrolling(!enrolling)} className="float-end btn btn-primary" >
         {enrolling ? "My Courses" : "All Courses"}
       </button>
-      </ProtectedStudentRoute>
+      {/* </ProtectedStudentRoute> */}
 
       <h2 id="wd-dashboard-published">Published Courses ({courses.length})</h2> <hr />
       <div id="wd-dashboard-courses" className="row">
@@ -69,24 +69,24 @@ export default function Dashboard(
                       </p>
                       <button className="btn btn-primary"> Go </button>
 
-                      <ProtectedStudentRoute>
+                      {/* <ProtectedStudentRoute> */}
                       {enrolling && (
                         <button onClick={(event) => {
                           event.preventDefault();
                           updateEnrollment(course._id, !course.enrolled);
                         }}
-                          className={`btn ${course.enrolled ? "btn-danger" : "btn-success"} float-end`} >
+                          className={`btn ms-1 ${course.enrolled ? "btn-danger" : "btn-success"}`} >
                           {course.enrolled ? "Unenroll" : "Enroll"}
                         </button>
                       )}
 
-                      </ProtectedStudentRoute>
+                      {/* </ProtectedStudentRoute> */}
 
                       <ProtectedFacultyRoute>
                         <button onClick={(event) => {
                           event.preventDefault();
                           deleteCourse(course._id);
-                        }} className="btn btn-danger float-end"
+                        }} className="btn btn-danger ms-1"
                           id="wd-delete-course-click">
                           Delete
                         </button>
@@ -96,7 +96,7 @@ export default function Dashboard(
                             event.preventDefault();
                             setCourse(course);
                           }}
-                          className="btn btn-warning me-2 float-end" >
+                          className={`btn btn-warning ${enrolling ? "mt-1" : "ms-1"}`} >
                           Edit
                         </button>
                       </ProtectedFacultyRoute>
