@@ -190,7 +190,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
         <p
           className="border bg-secondary p-2 mb-3 rounded"
           onClick={() =>
-            navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}/Editor`)
+            navigate(`/Kanbas/Courses/${cid}/Quizzes/${qid}/QuestionsEditor`)
           }
         >
           <LiaPencilAltSolid className="me-2" />

@@ -3,17 +3,23 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import QuestionContainer from "./QuestionContainer";
-import { addQuestion, setQuestions, deleteQuestion, updateQuestion } from "./reducerQuestions";
-import * as quizClient from "./client"
+import {
+  addQuestion,
+  setQuestions,
+  deleteQuestion,
+  updateQuestion,
+} from "./reducerQuestions";
+import * as quizClient from "./client";
 import { updateQuiz } from "./reducer";
-  //this comment is for a git push to update my netlify,ignore this :)
+import TakingQuestionContainer from "./TakingQuestionContainer";
+import PreviewContainer from "./PreviewContainer";
+//this comment is for a git push to update my netlify,ignore this :)
 
-  
 export default function QuizQuestionEditor() {
-  const { qid } = useParams();
-  const { cid } = useParams();
+  const { qid, cid } = useParams();
   const dispatch = useDispatch();
   const { questions } = useSelector((state: any) => state.questionsReducer);
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
 
   const fetchQuestions = async () => {
     const questions = await quizClient.findQuestionForQuiz(qid as string);
@@ -33,17 +39,27 @@ export default function QuizQuestionEditor() {
       choices: [],
       answers: [],
       quiz: qid,
-      sequence: questions.length
+      sequence: questions.length,
     };
-    const question = await quizClient.createQuestionForQuiz(qid, newQuestion);
+    let question = await quizClient.createQuestionForQuiz(qid, newQuestion);
+    question = { ...question, editing: false };
     dispatch(addQuestion(question)); // Pass the server response directly
   };
+
+  const editQuestion = (ques: any, edit: boolean) => {
+    const editQuestion = { ...ques, editing: edit };
+    dispatch(updateQuestion(editQuestion));
+  }
 
   return (
     <div id="wd-quiz-editor">
       <ul className="nav nav-tabs">
         <li className="nav-item">
-          <a className="nav-link text-danger " aria-current="page" href={`#/Kanbas/Courses/${cid}/Quizzes/${qid}/Editor`}>
+          <a
+            className="nav-link text-danger "
+            aria-current="page"
+            href={`#/Kanbas/Courses/${cid}/Quizzes/${qid}/Editor`}
+          >
             Details
           </a>
         </li>
@@ -59,15 +75,19 @@ export default function QuizQuestionEditor() {
       <br />
 
       <div id="wd-quiz-questions" className="row justify-content-center">
-        {questions.map((question: any) => (
-          <QuestionContainer question={question} />
-        ))}
+        {questions.map((question: any) => {
+          if (question.editing) {
+            return <QuestionContainer question={question} editQuestion={editQuestion}/>
+          } else {
+            return <PreviewContainer question={question} editQuestion={editQuestion}/>
+          }
+        })}
       </div>
 
       <div className=" d-flex justify-content-center">
-        <button className="btn btn-secondary"
-          onClick={createQuestionForQuiz}
-        >+ New Question</button>
+        <button className="btn btn-secondary" onClick={createQuestionForQuiz}>
+          + New Question
+        </button>
       </div>
 
       <hr />

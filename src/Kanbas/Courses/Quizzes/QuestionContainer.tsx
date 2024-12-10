@@ -2,16 +2,22 @@ import { IoIosArrowDown } from "react-icons/io";
 import "../../styles.css";
 import { useState } from "react";
 import { updateQuestion } from "./reducerQuestions";
-import * as quizzesClient from "./client"
+import * as quizzesClient from "./client";
 import { useDispatch } from "react-redux";
 
-export default function QuestionContainer({ question }: { question: any }) {
+export default function QuestionContainer({
+  question,
+  editQuestion,
+}: {
+  question: any;
+  editQuestion: (q: any, edit: boolean) => void;
+}) {
   const [choices, setChoices] = useState<string[]>(question.choices);
   const [type, setType] = useState<string>(question.type);
   const [answers, setAnswers] = useState<string[]>(question.answers);
   const [description, setDescription] = useState<string>(question.question);
-  const [title, setTitle] = useState<string>(question.title)
-  const [points, setPoints] = useState<string>(question.points)
+  const [title, setTitle] = useState<string>(question.title);
+  const [points, setPoints] = useState<string>(question.points);
   const dispatch = useDispatch();
 
   const handleNewChoice = (choice: string) => {
@@ -34,12 +40,11 @@ export default function QuestionContainer({ question }: { question: any }) {
   //   await quizzesClient.deleteQuestion(questionId);
   //   dispatch(deleteQuestion(questionId));
   // };
-  
+
   const saveQuestion = async (question: any) => {
     await quizzesClient.updateQuestion(question);
     dispatch(updateQuestion(question));
   };
-
 
   return (
     <div id="wd-multiple-choice" className="w-75 border rounded p-3 m-2">
@@ -86,8 +91,8 @@ export default function QuestionContainer({ question }: { question: any }) {
         {type === "Multiple Choice"
           ? "Enter your question and multiple answers, then select the one correct answer."
           : type === "True/False"
-            ? "Enter your question text, then select if True or False is the correct answer."
-            : "Enter your question text, then define all possible correct answers for the blank. Students will see the question followed by a small textbox to type their answer."}
+          ? "Enter your question text, then select if True or False is the correct answer."
+          : "Enter your question text, then define all possible correct answers for the blank. Students will see the question followed by a small textbox to type their answer."}
       </p>
 
       <h4>
@@ -117,13 +122,14 @@ export default function QuestionContainer({ question }: { question: any }) {
             className="me-2"
             defaultChecked={answers.includes("True")}
             onClick={() => {
-              setAnswers(["True"])
-            }} />
+              setAnswers(["True"]);
+            }}
+          />
           <label
             htmlFor="wd-true"
             className={answers.includes("True") ? "text-success" : ""}
             onClick={() => {
-              setAnswers(["True"])
+              setAnswers(["True"]);
             }}
           >
             True
@@ -136,14 +142,14 @@ export default function QuestionContainer({ question }: { question: any }) {
             className="me-2"
             defaultChecked={answers.includes("False")}
             onClick={() => {
-              setAnswers(["False"])
+              setAnswers(["False"]);
             }}
           />
           <label
             htmlFor="wd-false"
             className={answers.includes("False") ? "text-success" : ""}
             onClick={() => {
-              setAnswers(["False"])
+              setAnswers(["False"]);
             }}
           >
             False
@@ -152,44 +158,44 @@ export default function QuestionContainer({ question }: { question: any }) {
       ) : (
         <div>
           {choices.map((choice, idx) => {
-            return (
-              type === 'Multiple Choice' ?
-                (
-                  <div key={idx} className="ms-3 m-4 d-flex flex-row align-items-center">
-                    <input
-                      type="radio"
-                      name={`correct-answer-${question.id}`}
-                      id={`correct-answer-${idx}`}
-                      className="me-2"
-                      defaultChecked={answers.includes(choice)}
-                      onClick={() => setAnswers([choices[idx]])}
-                    />
-                    <label htmlFor={`correct-answer-${idx}`} className="me-2">
-                      Possible Answer
-                    </label>
-                    <input
-                      className="form-control w-25"
-                      id={idx.toString()}
-                      defaultValue={choice}
-                      onChange={(e) => handleUpdateChoice(idx, e.target.value)}
-                    />
-                  </div>
-                ) : (
-                  <div
-                    key={idx}
-                    className=" ms-3 m-4 d-flex flex-row align-items-center"
-                  >
-                    <label htmlFor={idx.toString()} className="me-2">
-                      Possible Answer
-                    </label>
-                    <input
-                      className="form-control w-25"
-                      id={idx.toString()}
-                      defaultValue={choice}
-                      onChange={(e) => handleUpdateChoice(idx, e.target.value)}
-                    />
-                  </div>
-                )
+            return type === "Multiple Choice" ? (
+              <div
+                key={idx}
+                className="ms-3 m-4 d-flex flex-row align-items-center"
+              >
+                <input
+                  type="radio"
+                  name={`correct-answer-${question.id}`}
+                  id={`correct-answer-${idx}`}
+                  className="me-2"
+                  defaultChecked={answers.includes(choice)}
+                  onClick={() => setAnswers([choices[idx]])}
+                />
+                <label htmlFor={`correct-answer-${idx}`} className="me-2">
+                  Possible Answer
+                </label>
+                <input
+                  className="form-control w-25"
+                  id={idx.toString()}
+                  defaultValue={choice}
+                  onChange={(e) => handleUpdateChoice(idx, e.target.value)}
+                />
+              </div>
+            ) : (
+              <div
+                key={idx}
+                className=" ms-3 m-4 d-flex flex-row align-items-center"
+              >
+                <label htmlFor={idx.toString()} className="me-2">
+                  Possible Answer
+                </label>
+                <input
+                  className="form-control w-25"
+                  id={idx.toString()}
+                  defaultValue={choice}
+                  onChange={(e) => handleUpdateChoice(idx, e.target.value)}
+                />
+              </div>
             );
           })}
           <div className="d-flex justify-content-end">
@@ -205,17 +211,22 @@ export default function QuestionContainer({ question }: { question: any }) {
 
       {/* Footer */}
       <div className="m-3">
-        <button className="btn btn-secondary me-3"
-        onClick={() => {
-          // setChoices(question.choices);
-          // setType(question.type);
-          // setAnswers(question.answers)
-          // setDescription(question.question);
-          // setTitle(question.title)
-          // setPoints(question.points)
-          // navigate(`#/Kanbas/Courses/${cid}/Quizzes/${qid}/QuestionsEditor`)
-        }}>Cancel</button>
-        <button className="btn btn-danger"
+        <button
+          className="btn btn-secondary me-3"
+          onClick={() => {
+            // setChoices(question.choices);
+            // setType(question.type);
+            // setAnswers(question.answers)
+            // setDescription(question.question);
+            // setTitle(question.title)
+            // setPoints(question.points)
+            // navigate(`#/Kanbas/Courses/${cid}/Quizzes/${qid}/QuestionsEditor`)
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          className="btn btn-danger me-3"
           onClick={() => {
             const newQuestion = {
               _id: question._id,
@@ -225,9 +236,30 @@ export default function QuestionContainer({ question }: { question: any }) {
               type: type,
               choices: choices,
               answers: answers,
-            }
-            saveQuestion(newQuestion)
-          }}>Update Question</button>
+            };
+            saveQuestion(newQuestion);
+          }}
+        >
+          Update Question
+        </button>
+        <button
+          className="btn btn-warning"
+          onClick={() => {
+            const newQuestion = {
+              _id: question._id,
+              title: title,
+              question: description,
+              points: points,
+              type: type,
+              choices: choices,
+              answers: answers,
+            };
+            saveQuestion(newQuestion);
+            editQuestion(newQuestion, false)
+          }}
+        >
+          Preview
+        </button>
       </div>
     </div>
   );
