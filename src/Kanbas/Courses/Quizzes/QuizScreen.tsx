@@ -61,7 +61,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
       currentUser._id
     );
     if (
-      currentUser.role === "STUDENT" &&
+      (currentUser.role === "STUDENT" || currentUser.role === "FACULTY") &&
       Array.isArray(resultAnswers) &&
       resultAnswers.length > 0
     ) {
@@ -133,7 +133,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
         id="wd-quiz-questions-and-answers"
         className="row d-flex flex-row justify-content-center mb-2"
       >
-        {quizQuestions.length > 1 && quizAnswers.length > 1 && (
+        {quizQuestions.length > 0 && quizAnswers.length > 0 && (
           <TakingQuestionContainer
             question={quizQuestions.find(
               (q: any) => q.sequence === questionIndex
@@ -176,7 +176,7 @@ export default function QuizScreen({ preview }: { preview: boolean }) {
             disabled={
               !quizInfo.multiple_attempts ||
               (quizInfo.multiple_attempts &&
-              attempt >= parseInt(quizInfo.attempts))
+                attempt >= parseInt(quizInfo.attempts))
             }
           >
             Retake Quiz
