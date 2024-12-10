@@ -1,16 +1,18 @@
 import { IoIosArrowDown } from "react-icons/io";
 import "../../styles.css";
 import { useState } from "react";
-import { updateQuestion } from "./reducerQuestions";
+import { addOrUpdateQuestion, updateQuestion } from "./reducerQuestions";
 import * as quizzesClient from "./client";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function QuestionContainer({
   question,
-  editQuestion,
+  updateQuestionState,
+  deleteQuestion,
 }: {
   question: any;
-  editQuestion: (q: any, edit: boolean) => void;
+  updateQuestionState: (q: any) => void;
+  deleteQuestion: (id: string) => void;
 }) {
   const [choices, setChoices] = useState<string[]>(question.choices);
   const [type, setType] = useState<string>(question.type);
@@ -19,31 +21,35 @@ export default function QuestionContainer({
   const [title, setTitle] = useState<string>(question.title);
   const [points, setPoints] = useState<string>(question.points);
   const dispatch = useDispatch();
+  const { questions } =
+    useSelector((state: any) => state.questionsReducer) || [];
+  const [initialState, setInitialState] = useState<any | null>(
+    questions.find((q: any) => q._id === question._id) || null
+  );
 
   const handleNewChoice = (choice: string) => {
-    setChoices((prevChoices) => [...prevChoices, choice]);
+    const newChoices = [...choices, choice];
+    setChoices(newChoices);
+    updateQuestionState({ ...question, choices: newChoices });
   };
 
   const handleUpdateChoice = (index: number, newChoice: string) => {
-    setChoices((prevChoices) => {
-      const updatedChoices = prevChoices.map((choice, idx) =>
-        idx === index ? newChoice : choice
-      );
-      if (type === "Fill In the Blank") {
-        setAnswers(updatedChoices); // Sync answers with the updated choices
-      }
-      return updatedChoices;
-    });
+    const updatedChoices = choices.map((choice, idx) =>
+      idx === index ? newChoice : choice
+    );
+    if (type === "Fill In the Blank") {
+      setAnswers(updatedChoices); // Sync answers with the updated choices
+    }
+    setChoices(updatedChoices);
+    updateQuestionState({ ...question, choices: updatedChoices });
   };
 
-  // const removeQuestion = async (questionId: string) => {
-  //   await quizzesClient.deleteQuestion(questionId);
-  //   dispatch(deleteQuestion(questionId));
-  // };
-
   const saveQuestion = async (question: any) => {
-    await quizzesClient.updateQuestion(question);
-    dispatch(updateQuestion(question));
+    const uneditQuestion = { ...question, editing: false };
+    await quizzesClient.updateQuestion(uneditQuestion);
+    dispatch(addOrUpdateQuestion(uneditQuestion));
+    updateQuestionState(uneditQuestion);
+    setInitialState(uneditQuestion);
   };
 
   return (
@@ -53,14 +59,20 @@ export default function QuestionContainer({
         <input
           className="form-control me-3 w-50"
           defaultValue={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            updateQuestionState({ ...question, title: e.target.value });
+          }}
         />
         <div className="wd-type input-group me-3 w-50">
           <select
             id="wd-type"
             className="form-control"
             defaultValue={type}
-            onChange={(e) => setType(e.target.value)}
+            onChange={(e) => {
+              setType(e.target.value);
+              updateQuestionState({ ...question, type: e.target.value });
+            }}
           >
             <option value="Multiple Choice">Multiple Choice</option>
             <option value="True/False">True/False</option>
@@ -82,7 +94,10 @@ export default function QuestionContainer({
           className="form-control w-25"
           defaultValue={points}
           type="number"
-          onChange={(e) => setPoints(e.target.value)}
+          onChange={(e) => {
+            setPoints(e.target.value);
+            updateQuestionState({ ...question, points: e.target.value });
+          }}
         />
       </div>
 
@@ -104,7 +119,10 @@ export default function QuestionContainer({
         rows={12}
         cols={50}
         defaultValue={description}
-        onChange={(e) => setDescription(e.target.value)}
+        onChange={(e) => {
+          setDescription(e.target.value);
+          updateQuestionState({ ...question, question: e.target.value });
+        }}
       />
 
       <br />
@@ -123,6 +141,7 @@ export default function QuestionContainer({
             defaultChecked={answers.includes("True")}
             onClick={() => {
               setAnswers(["True"]);
+              updateQuestionState({ ...question, answers: ["True"] });
             }}
           />
           <label
@@ -130,6 +149,7 @@ export default function QuestionContainer({
             className={answers.includes("True") ? "text-success" : ""}
             onClick={() => {
               setAnswers(["True"]);
+              updateQuestionState({ ...question, answers: ["True"] });
             }}
           >
             True
@@ -143,6 +163,7 @@ export default function QuestionContainer({
             defaultChecked={answers.includes("False")}
             onClick={() => {
               setAnswers(["False"]);
+              updateQuestionState({ ...question, answers: ["False"] });
             }}
           />
           <label
@@ -150,6 +171,7 @@ export default function QuestionContainer({
             className={answers.includes("False") ? "text-success" : ""}
             onClick={() => {
               setAnswers(["False"]);
+              updateQuestionState({ ...question, answers: ["False"] });
             }}
           >
             False
@@ -169,7 +191,13 @@ export default function QuestionContainer({
                   id={`correct-answer-${idx}`}
                   className="me-2"
                   defaultChecked={answers.includes(choice)}
-                  onClick={() => setAnswers([choices[idx]])}
+                  onClick={() => {
+                    setAnswers([choices[idx]]);
+                    updateQuestionState({
+                      ...question,
+                      answers: [choices[idx]],
+                    });
+                  }}
                 />
                 <label htmlFor={`correct-answer-${idx}`} className="me-2">
                   Possible Answer
@@ -214,13 +242,12 @@ export default function QuestionContainer({
         <button
           className="btn btn-secondary me-3"
           onClick={() => {
-            // setChoices(question.choices);
-            // setType(question.type);
-            // setAnswers(question.answers)
-            // setDescription(question.question);
-            // setTitle(question.title)
-            // setPoints(question.points)
-            // navigate(`#/Kanbas/Courses/${cid}/Quizzes/${qid}/QuestionsEditor`)
+            if (initialState === null) {
+              deleteQuestion(question._id);
+            } else {
+              const editQuestion = { ...initialState, editing: false };
+              updateQuestionState(editQuestion);
+            }
           }}
         >
           Cancel
@@ -254,8 +281,8 @@ export default function QuestionContainer({
               choices: choices,
               answers: answers,
             };
-            saveQuestion(newQuestion);
-            editQuestion(newQuestion, false)
+            const editQuestion = { ...question, editing: false };
+            updateQuestionState(editQuestion);
           }}
         >
           Preview

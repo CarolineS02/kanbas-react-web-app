@@ -2,10 +2,10 @@ import "../../styles.css";
 
 export default function PreviewContainer({
   question,
-  editQuestion,
+  updateQuestionState,
 }: {
   question: any;
-  editQuestion: (q: any, edit: boolean) => void;
+  updateQuestionState: (q: any) => void;
 }) {
   return (
     <div className="m-2 w-75 p-2 pt-3 d-flex flex-column justify-content-between">
@@ -17,7 +17,10 @@ export default function PreviewContainer({
           <h4>{question.title}</h4>
           <button
             className="btn btn-danger ms-3"
-            onClick={() => editQuestion(question, true)}
+            onClick={() => {
+              const editQuestion = { ...question, editing: true };
+              updateQuestionState(editQuestion);
+            }}
           >
             Edit
           </button>

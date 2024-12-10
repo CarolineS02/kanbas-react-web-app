@@ -1,29 +1,29 @@
 import "../../styles.css";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import QuestionContainer from "./QuestionContainer";
 import {
-  addQuestion,
+  addOrUpdateQuestion,
   setQuestions,
-  deleteQuestion,
-  updateQuestion,
 } from "./reducerQuestions";
 import * as quizClient from "./client";
-import { updateQuiz } from "./reducer";
-import TakingQuestionContainer from "./TakingQuestionContainer";
 import PreviewContainer from "./PreviewContainer";
+import * as quizzesClient from "./client";
 //this comment is for a git push to update my netlify,ignore this :)
 
 export default function QuizQuestionEditor() {
   const { qid, cid } = useParams();
   const dispatch = useDispatch();
-  const { questions } = useSelector((state: any) => state.questionsReducer);
-  const { currentUser } = useSelector((state: any) => state.accountReducer);
+  const { questions } =
+    useSelector((state: any) => state.questionsReducer) || [];
+  const [questionsState, setQuestionsState] = useState<any[]>(questions);
+  const navigate = useNavigate();
 
   const fetchQuestions = async () => {
     const questions = await quizClient.findQuestionForQuiz(qid as string);
     dispatch(setQuestions(questions));
+    setQuestionsState(questions);
   };
   useEffect(() => {
     fetchQuestions();
@@ -39,17 +39,39 @@ export default function QuizQuestionEditor() {
       choices: [],
       answers: [],
       quiz: qid,
-      sequence: questions.length,
+      sequence: questionsState.length,
     };
     let question = await quizClient.createQuestionForQuiz(qid, newQuestion);
     question = { ...question, editing: false };
-    dispatch(addQuestion(question)); // Pass the server response directly
+    setQuestionsState((prevQuestions) => [...prevQuestions, question]);
+    // dispatch(addQuestion(question)); // Pass the server response directly
   };
 
-  const editQuestion = (ques: any, edit: boolean) => {
-    const editQuestion = { ...ques, editing: edit };
-    dispatch(updateQuestion(editQuestion));
-  }
+  const deleteQuestion = (quesId: string) => {
+    const updatedQuestions = questionsState.filter(
+      (q: any) => q._id !== quesId
+    );
+    setQuestionsState(updatedQuestions);
+  };
+
+  const updateQuestionState = (ques: any) => {
+    const updatedQuestions = questionsState.map((q: any) =>
+      q._id === ques._id ? ques : q
+    );
+    setQuestionsState(updatedQuestions);
+  };
+
+  const saveQuestions = async () => {
+    const savedQuestions = await Promise.all(
+      questionsState.map(async (question: any) => {
+        await quizzesClient.updateQuestion(question);
+        const uneditQuestion = { ...question, editing: false };
+        dispatch(addOrUpdateQuestion(uneditQuestion));
+        return uneditQuestion;
+      })
+    );
+    setQuestionsState(savedQuestions);
+  };
 
   return (
     <div id="wd-quiz-editor">
@@ -75,11 +97,22 @@ export default function QuizQuestionEditor() {
       <br />
 
       <div id="wd-quiz-questions" className="row justify-content-center">
-        {questions.map((question: any) => {
+        {questionsState.map((question: any) => {
           if (question.editing) {
-            return <QuestionContainer question={question} editQuestion={editQuestion}/>
+            return (
+              <QuestionContainer
+                question={question}
+                updateQuestionState={updateQuestionState}
+                deleteQuestion={deleteQuestion}
+              />
+            );
           } else {
-            return <PreviewContainer question={question} editQuestion={editQuestion}/>
+            return (
+              <PreviewContainer
+                question={question}
+                updateQuestionState={updateQuestionState}
+              />
+            );
           }
         })}
       </div>
@@ -90,6 +123,31 @@ export default function QuizQuestionEditor() {
         </button>
       </div>
 
+      <hr />
+
+      <div
+        id="wd-edit-assignment-buttons"
+        className="d-flex justify-content-center"
+      >
+        <button
+          id="wd-save"
+          className="btn btn-lg btn-danger me-2"
+          onClick={() => {
+            saveQuestions();
+          }}
+          type="button"
+        >
+          Save
+        </button>
+        <button
+          id="wd-cancel"
+          className="btn btn-lg btn-secondary me-2"
+          onClick={() => window.location.reload()}
+          type="button"
+        >
+          Cancel
+        </button>
+      </div>
       <hr />
     </div>
   );
