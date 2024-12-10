@@ -103,28 +103,22 @@ export default function TakingQuestionContainer({
                       checked={questionAnswer.answer.includes(choice)}
                       disabled={corrections}
                       onChange={(e) => {
-                        // If checked, add to array
                         if (e.target.checked) {
+                          // Clear all other selections and set the current choice
                           updateAnswer({
                             ...questionAnswer,
-                            answer: [...questionAnswer.answer, choice],
+                            answer: [choice],
                             quiz_question: question._id,
-                            correct: questionAnswer.answer.every(
-                              (ans: string) => question.answers.includes(ans)
-                            ),
+                            correct: question.answers.includes(choice),
                             sequence: questionIndex,
                           });
                         } else {
-                          // If unchecked, remove from array
+                          // Uncheck the current selection (optional, based on desired behavior)
                           updateAnswer({
                             ...questionAnswer,
-                            answer: questionAnswer.answer.filter(
-                              (a: any) => a !== choice
-                            ),
+                            answer: [],
                             quiz_question: question._id,
-                            correct: questionAnswer.answer.every(
-                              (ans: string) => question.answers.includes(ans)
-                            ),
+                            correct: false,
                             sequence: questionIndex,
                           });
                         }

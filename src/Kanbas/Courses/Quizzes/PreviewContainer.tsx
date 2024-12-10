@@ -65,7 +65,7 @@ export default function PreviewContainer({
                     <input
                       name={`correct-answer-${question.id}`}
                       id={`correct-answer-${idx}`}
-                      type="checkbox"
+                      type="radio"
                       className="me-2"
                     />
                     <label htmlFor={`correct-answer-${idx}`} className="me-2">

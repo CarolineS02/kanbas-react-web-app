@@ -14,7 +14,8 @@ import ProtectedStudentRoute from "../ProtectedStudentRoute";
 import ContextMenu from "./ContextMenu";
 import * as coursesClient from "../client"
 import * as quizClient from "./client"
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { match } from "assert";
 
 
 export default function Quizzes() {
@@ -45,6 +46,79 @@ export default function Quizzes() {
             return "Closed";
         }
     }
+
+    const [questionCounts, setQuestionCounts] = useState<{ [key: string]: number }>({});
+    const [scores, setScores] = useState<{ [key: string]: string }>({});
+    const { currentUser } = useSelector((state: any) => state.accountReducer);
+    const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+    const [quizAnswers, setQuizAnswers] = useState<any[]>([]);
+
+    // Function to fetch and set question counts
+    const fetchQuestionNumber = async (qid: string) => {
+        const questions = await quizClient.findQuestionForQuiz(qid);
+        return questions.length;
+    };
+
+    const prepareNewAnswers = async (qid: string) => {
+        const results = await quizClient.findQuestionForQuiz(qid);
+        setQuizQuestions(results);
+        var resultAnswers = await quizClient.getLatestAnswersForQuiz(
+            qid,
+            currentUser._id
+        );
+
+        resultAnswers.sort((ans1: any, ans2: any) => ans1.sequence - ans2.sequence);
+        setQuizAnswers(resultAnswers);
+    };
+
+    const calculateScore = async (qid: string) => {
+        const [questions, answers] = await Promise.all([
+            quizClient.findQuestionForQuiz(qid),
+            quizClient.getLatestAnswersForQuiz(qid, currentUser._id),
+        ]);
+
+        // Sort answers by sequence
+        answers.sort((a: any, b: any) => a.sequence - b.sequence);
+
+        let correctScore = 0;
+        let totalScore = 0;
+
+        answers.forEach((answer: any) => {
+            const matchedQuestion = questions.find((q: any) => q.sequence === answer.sequence);
+
+            if (matchedQuestion) {
+                const points = parseInt(matchedQuestion.points || "0", 10);
+                totalScore += points;
+                if (answer.correct) {
+                    correctScore += points;
+                }
+            }
+        });
+
+        return totalScore > 0 ? `${((correctScore / totalScore) * 100).toFixed(2)}%` : "0%";
+    };
+
+    // Fetch question counts and scores for all quizzes
+    useEffect(() => {
+        const fetchAllQuestionCounts = async () => {
+            const counts: { [key: string]: number } = {};
+            for (const quiz of quizzes) {
+                counts[quiz._id] = await fetchQuestionNumber(quiz._id);
+            }
+            setQuestionCounts(counts);
+        };
+
+        const fetchAllScores = async () => {
+            const scores: { [key: string]: string } = {};
+            for (const quiz of quizzes) {
+                scores[quiz._id] = await calculateScore(quiz._id);
+            }
+            setScores(scores);
+        };
+
+        fetchAllScores();
+        fetchAllQuestionCounts();
+    }, [quizzes]); // Runs whenever the quizzes list changes
 
     const fetchQuizzes = async () => {
         const quizzes = await coursesClient.findQuizForCourse(cid as string);
@@ -129,9 +203,9 @@ export default function Quizzes() {
 
                     <ProtectedFacultyRoute>
                         <ul className="wd-assignments list-group rounded-0 ">
-                            {filteredQuizzes.length===0 ? 
-                            <p className=" text-secondary border-none m-2">Click "+ Quiz" to create a new quiz</p>
-                            : <></>}
+                            {filteredQuizzes.length === 0 ?
+                                <p className=" text-secondary border-none m-2">Click "+ Quiz" to create a new quiz</p>
+                                : <></>}
                             {filteredQuizzes.map((quiz: {
                                 _id: string;
                                 title: string;
@@ -156,25 +230,25 @@ export default function Quizzes() {
                                 published: boolean;
                             }) => {
                                 const modalId = `modal-${quiz._id}`;
-                                return(
-                                <li className="wd-assignment-link list-group-item p-3 ps-1 d-flex justify-content-between align-items-center"
-                                    key={quiz._id}>
-                                    <button
-                                        onClick={() => {
-                                            navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}`, { state: { isNewQuiz: false } });
-                                        }}
-                                        className="wd-assignment text-reset text-decoration-none d-flex align-items-center btn btn-link text-start">
-                                        <BsGripVertical className="me-4 fs-3" />
-                                        <TfiWrite className="me-4 fs-3 text-success" />
-                                        <span className="wd-assignment-text me-2">
-                                            <b>{quiz.title}</b>
-                                            <br />
-                                            <span className="text-danger"> <b>{getQuizAvailability(quiz._id)}</b> </span> | {123} Questions <br />
-                                            <b> Due</b> {quiz.due_date} | {quiz.points} pts
-                                        </span>
-                                    </button>
-                                    <div className="d-flex align-items-center">
-                                        <div className="float-end">
+                                return (
+                                    <li className="wd-assignment-link list-group-item p-3 ps-1 d-flex justify-content-between align-items-center"
+                                        key={quiz._id}>
+                                        <button
+                                            onClick={() => {
+                                                navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}`, { state: { isNewQuiz: false } });
+                                            }}
+                                            className="wd-assignment text-reset text-decoration-none d-flex align-items-center btn btn-link text-start">
+                                            <BsGripVertical className="me-4 fs-3" />
+                                            <TfiWrite className="me-4 fs-3 text-success" />
+                                            <span className="wd-assignment-text me-2">
+                                                <b>{quiz.title}</b>
+                                                <br />
+                                                <span className="text-danger"> <b>{getQuizAvailability(quiz._id)}</b> </span> | {questionCounts[quiz._id]} Questions <br />
+                                                <b> Due</b> {quiz.due_date} | {quiz.points} pts
+                                            </span>
+                                        </button>
+                                        <div className="d-flex align-items-center">
+                                            <div className="float-end">
                                                 <button className="btn btn-default p-0"
                                                     onClick={() => {
                                                         saveQuiz({
@@ -185,22 +259,23 @@ export default function Quizzes() {
                                                     }>
                                                     {!quiz.published ? <TiCancel className="fs-3" /> : <GreenCheckmark />}
                                                 </button>
-                                            <button id={`context-menu-btn-${quiz._id}`}
-                                                className="btn btn-default ms-2 fs-5"
-                                                data-bs-toggle="modal" data-bs-target={`#modal-${quiz._id}`}>
-                                                <IoEllipsisVertical className="fs-4" />
-                                            </button>
-                                        </div>
-                                        {/* <button id="wd-delete-assignment-btn"
+                                                <button id={`context-menu-btn-${quiz._id}`}
+                                                    className="btn btn-default ms-2 fs-5"
+                                                    data-bs-toggle="modal" data-bs-target={`#modal-${quiz._id}`}>
+                                                    <IoEllipsisVertical className="fs-4" />
+                                                </button>
+                                            </div>
+                                            {/* <button id="wd-delete-assignment-btn"
                                             className="btn btn-link ms-2 fs-5"
                                             data-bs-toggle="modal" data-bs-target="#wd-add-module-dialog">
                                             <FaTrash />
                                         </button> */}
-                                        
-                                        <ContextMenu dialogTitle={`Quiz Context Menu`} modalId={modalId} quiz={quiz} />
-                                    </div>
-                                </li>
-                            )})}
+
+                                            <ContextMenu dialogTitle={`Quiz Context Menu`} modalId={modalId} quiz={quiz} />
+                                        </div>
+                                    </li>
+                                )
+                            })}
                         </ul>
                     </ProtectedFacultyRoute>
                     <ProtectedStudentRoute>
@@ -242,8 +317,8 @@ export default function Quizzes() {
                                             <span className="wd-assignment-text me-2">
                                                 <b>{quiz.title}</b>
                                                 <br />
-                                                <span className="text-danger"> <b>{getQuizAvailability(quiz._id)}</b> </span> | {123} Questions <br />
-                                                <b> Due</b> {quiz.due_date} | {quiz.points} pts | Score {95}
+                                                <span className="text-danger"> <b>{getQuizAvailability(quiz._id)}</b> </span> | {questionCounts[quiz._id]} Questions <br />
+                                                <b> Due</b> {quiz.due_date} | {quiz.points} pts | Score {scores[quiz._id]}
                                             </span>
                                         </button>
                                         <div className="d-flex align-items-center">

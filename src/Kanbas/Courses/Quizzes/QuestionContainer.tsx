@@ -4,6 +4,7 @@ import { useState } from "react";
 import { addOrUpdateQuestion, updateQuestion } from "./reducerQuestions";
 import * as quizzesClient from "./client";
 import { useDispatch, useSelector } from "react-redux";
+import { BiTrash } from "react-icons/bi";
 
 export default function QuestionContainer({
   question,
@@ -106,8 +107,8 @@ export default function QuestionContainer({
         {type === "Multiple Choice"
           ? "Enter your question and multiple answers, then select the one correct answer."
           : type === "True/False"
-          ? "Enter your question text, then select if True or False is the correct answer."
-          : "Enter your question text, then define all possible correct answers for the blank. Students will see the question followed by a small textbox to type their answer."}
+            ? "Enter your question text, then select if True or False is the correct answer."
+            : "Enter your question text, then define all possible correct answers for the blank. Students will see the question followed by a small textbox to type their answer."}
       </p>
 
       <h4>
@@ -205,8 +206,24 @@ export default function QuestionContainer({
                 <input
                   className="form-control w-25"
                   id={idx.toString()}
-                  defaultValue={choice}
+                  value={choice}
                   onChange={(e) => handleUpdateChoice(idx, e.target.value)}
+                />
+                <BiTrash
+                  className="text-danger m-2 fs-4"
+                  onClick={() => {
+                    const updatedChoices = choices.filter((_, i) => i !== idx);
+                    const updatedAnswers = answers.filter((ans) => ans !== choice);
+                
+                    // Update state directly
+                    setChoices(updatedChoices);
+                    setAnswers(updatedAnswers);
+                    updateQuestionState({
+                      ...question,
+                      choices: updatedChoices,
+                      answers: updatedAnswers,
+                    });
+                  }}
                 />
               </div>
             ) : (
@@ -220,8 +237,23 @@ export default function QuestionContainer({
                 <input
                   className="form-control w-25"
                   id={idx.toString()}
-                  defaultValue={choice}
+                  value={choice}
                   onChange={(e) => handleUpdateChoice(idx, e.target.value)}
+                />
+                <BiTrash
+                  className="text-danger m-2 fs-4"
+                  onClick={() => {
+                    const updatedChoices = choices.filter((_, i) => i !== idx);
+                    const updatedAnswers = answers.filter((ans) => ans !== choice);
+                
+                    setChoices(updatedChoices);
+                    setAnswers(updatedAnswers);
+                    updateQuestionState({
+                      ...question,
+                      choices: updatedChoices,
+                      answers: updatedAnswers,
+                    });
+                  }}
                 />
               </div>
             );
